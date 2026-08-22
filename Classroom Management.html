@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន - ថ្នាក់ទី២</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Kantumruy Pro', sans-serif; background-color: #f3f4f6; }
+        .font-moul { font-family: 'Moul', serif; }
+        .nav-active { background-color: #2563eb; color: white; border-left: 4px solid #60a5fa; }
+        .nav-item { transition: all 0.3s ease; }
+        .nav-item:hover:not(.nav-active) { background-color: #e5e7eb; color: #1e3a8a; }
+        
+        .grade-table th, .grade-table td, .report-table th, .report-table td { border: 1px solid #d1d5db; padding: 6px; text-align: center; font-size: 13px; }
+        .grade-table th, .report-table th { background-color: #f8fafc; font-weight: 600; color: #1e293b; }
+        .grade-input { width: 48px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; }
+        .grade-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+        
+        .att-input { width: 100%; min-width: 20px; text-align: center; border: none; background: transparent; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .att-input:focus { outline: 1px solid #3b82f6; background-color: white; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #10B981; color: #fff;
+            text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 3000; 
+            left: 50%; transform: translateX(-50%); bottom: 30px; font-size: 15px; font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+        }
+
+        @media print {
+            body { background: white !important; }
+            aside, header, .no-print, #login-screen, #toast, .modal-backdrop { display: none !important; }
+            main { overflow: visible !important; height: auto !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+            .print-area { display: block !important; border: none !important; box-shadow: none !important; width: 100% !important; padding: 0 !important; margin-top: -20px; }
+            .grade-table th, .grade-table td, .report-table th, .report-table td { border-color: #333 !important; padding: 4px !important; font-size: 12px !important; }
+            .grade-input { border: none !important; background: transparent !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 text-3xl">
+                <i class="fa-solid fa-school"></i>
+            </div>
+            <h2 class="font-moul text-xl text-blue-800 mb-1">សាលាបឋមសិក្សា ខ្សុំ</h2>
+            <p class="text-gray-500 text-sm mb-6">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន</p>
+            
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-4 text-left">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">គណនី (Username)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="login-user" class="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    </div>
+                </div>
+                <div class="mb-6 text-left">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ពាក្យសម្ងាត់ (Password)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="password" id="login-pass" class="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    </div>
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> ចូលប្រើប្រាស់
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT STUDENT MODAL -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 m-4">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i> កែប្រែព័ត៌មានសិស្ស</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="edit-student-form" onsubmit="submitEditStudent(event)" class="space-y-3">
+                <input type="hidden" id="edit-old-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">អត្តលេខ</label>
+                        <input type="text" id="edit-id" class="w-full p-2 border rounded text-sm bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ភេទ</label>
+                        <select id="edit-gender" class="w-full p-2 border rounded text-sm bg-white">
+                            <option value="ស">ស្រី</option>
+                            <option value="ប">ប្រុស</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">គោត្តនាម និងនាម</label>
+                    <input type="text" id="edit-name" required class="w-full p-2 border rounded text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ថ្ងៃខែឆ្នាំកំណើត</label>
+                        <input type="text" id="edit-dob" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ទីកន្លែងកំណើត</label>
+                        <input type="text" id="edit-pob" class="w-full p-2 border rounded text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ឈ្មោះឪពុក</label>
+                        <input type="text" id="edit-father" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ឈ្មោះម្តាយ</label>
+                        <input type="text" id="edit-mother" class="w-full p-2 border rounded text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold">បោះបង់</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">រក្សាទុក</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div id="main-app" class="flex w-full h-full hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10">
+            <div class="h-20 flex items-center justify-center border-b border-gray-100 bg-blue-50 px-3">
+                <div class="text-sm font-bold text-blue-800 flex items-center gap-2 font-moul leading-snug text-center">
+                    <i class="fa-solid fa-book-open-reader text-blue-600 text-lg"></i> ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន <br> ថ្នាក់ទី២ «ខ»
+                </div>
+            </div>
+            
+            <div class="overflow-y-auto flex-1">
+                <nav class="py-4 flex flex-col gap-1 px-3">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-1">ទិដ្ឋភាពទូទៅ</p>
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item nav-active flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
+                    </button>
+                    
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">គ្រប់គ្រងសិស្ស និងវត្តមាន</p>
+                    <button onclick="switchTab('manage-students')" id="nav-manage-students" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-users-gear w-5 text-center"></i> បញ្ជីឈ្មោះសិស្ស
+                    </button>
+                    <button onclick="switchTab('attendance-report')" id="nav-attendance-report" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-table-list w-5 text-center text-green-600"></i> ស្រង់វត្តមានប្រចាំខែ
+                    </button>
+
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">ការវាយតម្លៃ</p>
+                    <button onclick="switchTab('detailed-sheet')" id="nav-detailed-sheet" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-pen-to-square w-5 text-center"></i> បញ្ចូលពិន្ទុ
+                    </button>
+                    <button onclick="switchTab('monthly-results')" id="nav-monthly-results" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-file-lines w-5 text-center text-teal-600"></i> លទ្ធផលប្រឡង
+                    </button>
+                    <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-trophy w-5 text-center"></i> ចំណាត់ថ្នាក់រួម
+                    </button>
+                    <button onclick="switchTab('honor-roll')" id="nav-honor-roll" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-medal w-5 text-center text-yellow-500"></i> តារាងកិត្តិយស
+                    </button>
+
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">របាយការណ៍សិស្ស</p>
+                    <button onclick="switchTab('student')" id="nav-student" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-chart-line w-5 text-center text-indigo-500"></i> ការវិវត្តសិស្ស
+                    </button>
+                    <button onclick="switchTab('tracking-book')" id="nav-tracking-book" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-book w-5 text-center text-red-500"></i> សៀវភៅតាមដាន
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="p-3 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs" id="user-avatar">គ្រូ</div>
+                        <div class="text-lg font-muol text-blue-800">
+                            <p class="font-muol text-blue-800" id="user-fullname">លោកគ្រូ/អ្នកគ្រូ</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-red-500 transition" title="ចាកចេញ">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto relative bg-gray-50">
+            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-0 sticky top-0 no-print">
+                <h1 id="page-title" class="text-lg font-bold text-gray-800"> ស្ថិតិ​ និងរបាយកាណ៍សង្ខេប</h1>
+                <button onclick="fetchStudents()" class="text-gray-600 hover:text-blue-600 bg-gray-100 px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 transition">
+                    <i class="fa-solid fa-rotate"></i> ទាញយកទិន្នន័យថ្មី
+                </button>
+            </header>
+
+            <div class="p-6">
+                <!-- 1. DASHBOARD VIEW (UPDATED) -->
+                <div id="view-dashboard" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-users"></i></div>
+                            <div><p class="text-sm text-blue-100 mb-1">សិស្សសរុប</p><h3 class="text-3xl font-bold" id="stat-total">0</h3></div>
+                        </div>
+                        <div class="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-female"></i></div>
+                            <div><p class="text-sm text-pink-100 mb-1">សិស្សស្រី</p><h3 class="text-3xl font-bold" id="stat-female">0</h3></div>
+                        </div>
+                        <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-male"></i></div>
+                            <div><p class="text-sm text-indigo-100 mb-1">សិស្សប្រុស</p><h3 class="text-3xl font-bold" id="stat-male">0</h3></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Chart Section -->
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800">ស្ថិតិសិស្សជាប់ និងធ្លាក់</h3>
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded" id="dash-chart-month">ខែ...</span>
+                            </div>
+                            <div class="h-[250px] flex items-center justify-center relative">
+                                <canvas id="passFailChart"></canvas>
+                                <div id="chart-no-data" class="absolute hidden text-gray-400">មិនទាន់មានទិន្នន័យ</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Top 3 Section -->
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-800 mb-4"><i class="fa-solid fa-crown text-yellow-500 mr-2"></i> សិស្សឆ្នើម Top 3</h3>
+                            <div id="dash-top3-container" class="space-y-4">
+                                <!-- Top 3 Rendered Here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. MANAGE STUDENTS VIEW -->
+                <div id="view-manage-students" class="hidden space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 bg-blue-50 border-b border-gray-200">
+                            <h2 class="text-md font-bold text-blue-800 mb-3"><i class="fa-solid fa-user-plus"></i> បន្ថែមសិស្សថ្មី</h2>
+                            <form id="add-student-form" onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div><input type="text" id="new-id" required placeholder="អត្តលេខ" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-name" required placeholder="គោត្តនាម និងនាម" class="w-full p-2 border rounded text-sm"></div>
+                                <div>
+                                    <select id="new-gender" class="w-full p-2 border rounded text-sm bg-white">
+                                        <option value="ស">ស្រី</option>
+                                        <option value="ប">ប្រុស</option>
+                                    </select>
+                                </div>
+                                <div><input type="text" id="new-dob" placeholder="ថ្ងៃខែឆ្នាំកំណើត (ឧ. 15-05-2015)" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-pob" placeholder="ទីកន្លែងកំណើត (ស្រុក/ខេត្ត)" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-father" placeholder="ឈ្មោះឪពុក" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-mother" placeholder="ឈ្មោះម្តាយ" class="w-full p-2 border rounded text-sm"></div>
+                                <div>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm shadow-sm transition">រក្សាទុក</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="overflow-x-auto p-4 print-area">
+                            <div class="flex justify-between items-center mb-3 no-print">
+                                <div>
+                                    <h3 class="font-bold text-gray-700 inline-block">បញ្ជីឈ្មោះសិស្សក្នុងថ្នាក់</h3>
+                                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-bold ml-2" id="student-list-count"></span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="exportTableToExcel('manage-students-table', 'បញ្ជីឈ្មោះសិស្ស')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                    <button onclick="window.print()" class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-black"><i class="fa-solid fa-file-pdf mr-1"></i> Print/PDF</button>
+                                </div>
+                            </div>
+                            <table id="manage-students-table" class="w-full text-sm text-left text-gray-600 border border-gray-200">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-3 py-3 border-r text-center w-12">ល.រ</th>
+                                        <th class="px-3 py-3 border-r text-center w-24">អត្តលេខ</th>
+                                        <th class="px-4 py-3 border-r">ឈ្មោះ</th>
+                                        <th class="px-3 py-3 border-r text-center w-16">ភេទ</th>
+                                        <th class="px-3 py-3 border-r">ថ្ងៃខែឆ្នាំកំណើត</th>
+                                        <th class="px-3 py-3 border-r">ទីកន្លែងកំណើត</th>
+                                        <th class="px-3 py-3 border-r">ឪពុក/ម្តាយ</th>
+                                        <th class="px-3 py-3 text-center w-24 no-print">សកម្មភាព</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manage-students-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ATTENDANCE REPORT VIEW (DYNAMIC DAYS) -->
+                <div id="view-attendance-report" class="hidden space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 print-area p-6">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡា</p>
+                                <p class="font-moul text-[12px] text-green-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print flex justify-end gap-2">
+                                <button onclick="exportTableToExcel('attendance-report-table', 'របាយការណ៍វត្តមាន')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-black"><i class="fa-solid fa-print mr-1"></i> បោះពុម្ព</button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-green-800">បញ្ជីវត្តមានសិស្សប្រចាំខែ</h2>
+                            <div class="flex justify-center items-center gap-2 mt-2">
+                                <span class="font-bold text-gray-800">សម្រាប់ខែ៖</span>
+                                <input type="month" id="att-month-selector" class="border border-gray-300 rounded p-1 text-base font-semibold bg-white text-green-700 no-print" onchange="handleMonthChange()">
+                                <span class="font-bold text-gray-800 ml-3">ឆ្នាំសិក្សា ២០២៦-២០២៧</span>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto pb-4">
+                            <table id="attendance-report-table" class="report-table w-full whitespace-nowrap">
+                                <thead class="bg-gray-100 sticky top-0">
+                                    <tr>
+                                        <th rowspan="2" class="w-10">ល.រ</th>
+                                        <th rowspan="2" class="w-40 text-left px-2">ឈ្មោះ</th>
+                                        <th rowspan="2" class="w-10">ភេទ</th>
+                                        <!-- Dynamic Colspan for days -->
+                                        <th id="att-days-header" colspan="31" class="bg-green-50 text-green-900 border-green-200">កាលបរិច្ឆេទក្នុងខែ</th>
+                                        <th colspan="3" class="bg-blue-50 text-blue-900">សរុបប្រចាំខែ</th>
+                                    </tr>
+                                    <tr class="text-[10px]" id="att-days-row">
+                                        <!-- Rendered via JS based on selected month -->
+                                    </tr>
+                                </thead>
+                                <tbody id="att-report-tbody"></tbody>
+                            </table>
+                            <div class="flex justify-between items-center mt-3">
+                                <p class="text-xs text-gray-500">*សម្គាល់៖ សូមវាយអក្សរ <strong class="text-green-600">V</strong> = វត្តមាន, <strong class="text-red-500">A</strong> = អវត្តមាន, <strong class="text-yellow-600">L</strong> = ច្បាប់ ចូលក្នុងក្រឡានីមួយៗ។ 
+                                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700 ml-4 no-print" onclick="calculateAttendance()"><i class="fa-solid fa-calculator"></i> គណនាសរុប</button>
+                                </p>
+                                <button onclick="saveMonthlyAttendance()" id="btn-save-monthly-att" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 no-print"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមានប្រចាំខែ</button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-1/3"></div>
+                            <div class="w-1/3 text-center"> <br> <br> <br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. DETAILED GRADE SHEET VIEW -->
+                <div id="view-detailed-sheet" class="hidden space-y-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 print-area">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡានៃរដ្ឋបាលស្រុកកៀនស្វាយ</p>
+                                <p class="font-moul text-[12px] text-blue-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print">
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black">
+                                    <i class="fa-solid fa-print mr-1"></i> បោះពុម្ព
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-blue-800">បញ្ជីស្រង់ពិន្ទុ</h2>
+                            <div class="flex justify-center items-center gap-2 mt-2">
+                                <select id="month-selector" class="border border-gray-300 rounded p-1 text-base font-semibold bg-white text-blue-700" onchange="loadDetailedSheet()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <span class="font-bold text-gray-800">ឆ្នាំសិក្សា ២០២៦-២០២៧</span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto pb-4 max-h-[60vh]">
+                            <table class="grade-table w-full whitespace-nowrap" id="official-grade-table">
+                                <thead class="sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th rowspan="2" class="w-10">ល.រ</th>
+                                        <th rowspan="2" class="w-48 text-left px-2">ឈ្មោះ</th>
+                                        <th rowspan="2" class="w-12">ភេទ</th>
+                                        <th colspan="4" class="bg-blue-100 text-blue-900">ភាសាខ្មែរ</th>
+                                        <th colspan="5" class="bg-green-100 text-green-900">គណិតវិទ្យា</th>
+                                        <th colspan="4" class="bg-yellow-100 text-yellow-900">វិទ្យាសាស្រ្ត</th>
+                                        <th colspan="3" class="bg-orange-100 text-orange-900">សិក្សាសង្គម</th>
+                                        <th class="bg-red-100 text-red-900">កាយ</th>
+                                        <th class="bg-purple-100 text-purple-900">បំណិន</th>
+                                        <th rowspan="2" class="bg-gray-200 w-16 font-bold">សរុប</th>
+                                        <th rowspan="2" class="bg-gray-200 w-16 font-bold text-blue-700">មធ្យម</th>
+                                    </tr>
+                                    <tr class="text-[10px]">
+                                        <th class="bg-blue-50">ស្ដាប់</th><th class="bg-blue-50">សរសេរ</th><th class="bg-blue-50">អាន</th><th class="bg-blue-50">តែង</th>
+                                        <th class="bg-green-50">ចំនួន</th><th class="bg-green-50">រង្វាស់</th><th class="bg-green-50">ធរណី</th><th class="bg-green-50">ពីជ</th><th class="bg-green-50">ស្ថិតិ</th>
+                                        <th class="bg-yellow-50">រូប</th><th class="bg-yellow-50">គីមី</th><th class="bg-yellow-50">ជីវ</th><th class="bg-yellow-50">ផែនដី</th>
+                                        <th class="bg-orange-50">ពលរដ្ឋ</th><th class="bg-orange-50">ភូមិ</th><th class="bg-orange-50">ប្រវត្តិ</th>
+                                        <th class="bg-red-50">កាយ</th><th class="bg-purple-50">សិល្បៈ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detailed-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end no-print">
+                            <button onclick="saveDetailedScores()" id="btn-save-scores" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-700 transition font-bold flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> រក្សាទុកពិន្ទុ
+                            </button>
+                        </div>
+
+                        <div class="mt-6 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-1/3"></div>
+                            <div class="w-1/3 text-center"> <br> <br> <br><br><br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. MONTHLY RESULTS VIEW -->
+                <div id="view-monthly-results" class="hidden space-y-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 print-area">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡានៃរដ្ឋបាលស្រុកកៀនស្វាយ</p>
+                                <p class="font-moul text-[12px] text-teal-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print flex justify-end gap-2">
+                                <select id="result-month-selector" class="border border-gray-300 rounded p-1 text-sm font-bold text-teal-700" onchange="renderMonthlyResults()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <button onclick="exportTableToExcel('monthly-results-table', 'លទ្ធផលប្រឡង')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700 ml-1"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-black"><i class="fa-solid fa-print mr-1"></i> បោះពុម្ព</button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-teal-800">ចំណាត់ថ្នាក់ប្រចាំ</h2>
+                            <h2 class="font-moul text-lg text-gray-800 mt-1" id="result-month-title">ខែ...</h2>
+                            <p class="text-sm text-gray-600 font-semibold mt-1">ឆ្នាំសិក្សា ២០២៦-២០២៧</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="monthly-results-table" class="w-full text-sm border-collapse border border-gray-400 text-center">
+                                <thead class="bg-gray-100 text-gray-800 font-bold border-b-2 border-gray-400">
+                                    <tr>
+                                        <th class="border border-gray-400 p-2 w-12">ល.រ</th>
+                                        <th class="border border-gray-400 p-2 w-28">អត្តលេខ</th>
+                                        <th class="border border-gray-400 p-2 text-left w-25">គោត្តនាម និងនាម</th>
+                                        <th class="border border-gray-400 p-2 w-16">ភេទ</th>
+                                        <th class="border border-gray-400 p-2 w-24">ពិន្ទុសរុប</th>
+                                        <th class="border border-gray-400 p-2 w-24 text-blue-700">មធ្យមភាគ</th>
+                                        <th class="border border-gray-400 p-2 w-24 text-yellow-700">ចំណាត់ថ្នាក់</th>
+                                        <th class="border border-gray-400 p-2 w-24">និទ្ទេស</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-results-tbody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-8 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-2/3">
+                                <p>- បញ្ឈប់បញ្ជីត្រឹមសិស្សចំនួន <span id="sum-total" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់ ស្រី <span id="sum-female" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់</p>
+                                <p>- សិស្សជាប់មធ្យមភាគ <span id="sum-pass" class="font-bold text-green-700 border-b border-dotted px-2 border-black">...</span> នាក់ ស្រី <span id="sum-pass-f" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់</p>
+                                <p>- សិស្សធ្លាក់ <span id="sum-fail" class="font-bold text-red-700 border-b border-dotted px-2 border-black">...</span> នាក់ ស្រី <span id="sum-fail-f" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់</p>
+                            </div>
+                            <div class="w-1/3 text-center"> <br><br><br><br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. LEADERBOARD VIEW -->
+                <div id="view-leaderboard" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-gray-800">តារាងចំណាត់ថ្នាក់សិស្ស</h2>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700">ជ្រើសរើស៖</span>
+                                <select id="leaderboard-filter" class="border rounded p-1.5 text-xs font-bold text-blue-700 bg-blue-50" onchange="renderLeaderboard()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center">ចំណាត់ថ្នាក់</th>
+                                        <th class="px-6 py-4">អត្តលេខ</th>
+                                        <th class="px-6 py-4">ឈ្មោះសិស្ស</th>
+                                        <th class="px-6 py-4 text-center">ភេទ</th>
+                                        <th class="px-6 py-4 text-center text-blue-700">មធ្យមភាគ</th>
+                                        <th class="px-6 py-4 text-center">និទ្ទេស</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. HONOR ROLL VIEW -->
+                <div id="view-honor-roll" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 print-area">
+                        <div class="flex justify-between items-center mb-6 no-print">
+                            <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-medal text-yellow-500 mr-2"></i>តារាងកិត្តិយស (Top 5)</h2>
+                            <div class="flex gap-3">
+                                <select id="honor-month-selector" class="border border-gray-300 rounded p-1 text-sm bg-gray-50 font-semibold" onchange="renderHonorRoll()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-1.5 rounded text-sm font-semibold hover:bg-black">
+                                    <i class="fa-solid fa-print mr-1"></i> បោះពុម្ព
+                                </button>
+                            </div>
+                        </div>
+                        <div id="honor-roll-container" class="grid grid-cols-1 md:grid-cols-5 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- 8. STUDENT REPORT VIEW -->
+                <div id="view-student" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="mb-6 border-b pb-4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900">ជ្រើសរើសសិស្សដើម្បីមើលរបាយការណ៍វិវត្តន៍៖</label>
+                            <select id="profile-student-select" class="w-full md:w-96 bg-gray-50 border border-gray-300 rounded-lg p-2.5 font-bold text-blue-700" onchange="renderStudentProfile()">
+                                <option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>
+                            </select>
+                        </div>
+                        <div id="student-empty-state" class="text-center py-12 text-gray-400">
+                            <i class="fa-solid fa-chart-line text-4xl mb-3"></i>
+                            <p>សូមជ្រើសរើសឈ្មោះសិស្សពីបញ្ជីខាងលើ ដើម្បីមើលការវិវត្ត</p>
+                        </div>
+                        <div id="student-profile-area" class="hidden pt-2 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="bg-gray-50 rounded-xl p-6 flex flex-col items-center text-center border border-gray-100 shadow-inner">
+                                <div id="student-avatar" class="w-20 h-20 rounded-full text-white text-3xl font-bold mb-3 flex items-center justify-center shadow-md"></div>
+                                <h3 id="profile-name" class="text-xl font-bold mb-1 text-gray-800"></h3>
+                                <p id="profile-id-gender" class="text-gray-500 mb-6 bg-white px-3 py-1 rounded-full text-xs border"></p>
+                                <div class="w-full space-y-2 text-sm">
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>ពិន្ទុសរុបចុងក្រោយ</span><span id="prof-total" class="font-bold text-gray-800"></span></div>
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>មធ្យមភាគ</span><span id="prof-avg" class="font-bold text-blue-700"></span></div>
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>ចំណាត់ថ្នាក់</span><span id="prof-rank" class="font-bold text-yellow-600"></span></div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <h3 class="font-bold mb-4 text-gray-800"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i> ក្រាហ្វិកការវិវត្តមធ្យមភាគតាមខែ</h3>
+                                <div class="bg-white border rounded-xl p-4 h-[300px] shadow-sm">
+                                    <canvas id="progressChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. TRACKING BOOK VIEW -->
+                <div id="view-tracking-book" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 no-print">
+                        <label class="block mb-2 text-sm font-medium text-gray-900">ជ្រើសរើសសិស្សដើម្បីបង្កើតសៀវភៅតាមដាន៖</label>
+                        <div class="flex gap-4">
+                            <select id="tracking-student-select" class="w-full md:w-96 bg-gray-50 border border-gray-300 rounded-lg p-2 font-bold text-blue-700">
+                                <option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>
+                            </select>
+                            <button onclick="generateTrackingBook()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold text-sm">
+                                បង្កើតរបាយការណ៍
+                            </button>
+                            <button onclick="window.print()" class="bg-gray-800 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-black">
+                                <i class="fa-solid fa-print mr-1"></i> Print PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="printable-report" class="hidden bg-white p-8 border border-gray-300 max-w-4xl mx-auto shadow-sm print-area">
+                        <div class="text-center mb-6 border-b-2 border-gray-800 pb-4">
+                            <h1 class="font-moul text-lg mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                            <h2 class="font-moul text-sm">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                            <br>
+                            <h2 class="font-moul text-lg text-blue-800 mb-1">សៀវភៅតាមដានលទ្ធផលសិក្សាសិស្ស</h2>
+                            <p class="font-semibold text-sm text-size-14">សាលាបឋមសិក្សាខ្សុំ - ឆ្នាំសិក្សា ២០២៦-២០២៧</p>
+                        </div>
+                        
+                        <div class="flex justify-between mb-6 text-xs">
+                            <div>
+                                <p class="mb-1"><strong>អត្តលេខ៖</strong> <span id="tb-id">...</span></p>
+                                <p class="mb-1"><strong>គោត្តនាម និងនាម៖</strong> <span id="tb-name" class="font-bold text-sm text-blue-700">...</span></p>
+                                <p class="mb-1"><strong>ភេទ៖</strong> <span id="tb-gender">...</span></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="mb-1"><strong>ថ្នាក់ទី៖</strong> ២ «ខ»</p>
+                                <p class="mb-1"><strong>គ្រូបន្ទុកថ្នាក់៖</strong> ហឿន វិផា</p>
+                            </div>
+                        </div>
+
+                        <table class="w-full text-xs border-collapse border border-gray-800 text-center mb-8">
+                            <thead class="bg-gray-100 font-bold">
+                                <tr>
+                                    <th class="border border-gray-800 p-2">ការវាយតម្លៃ</th>
+                                    <th class="border border-gray-800 p-2">ពិន្ទុសរុប</th>
+                                    <th class="border border-gray-800 p-2">មធ្យមភាគ</th>
+                                    <th class="border border-gray-800 p-2">ចំណាត់ថ្នាក់</th>
+                                    <th class="border border-gray-800 p-2">និទ្ទេស</th>
+                                    <th class="border border-gray-800 p-2 w-32">ហត្ថលេខាអាណាព្យាបាល</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-scores-body"></tbody>
+                        </table>
+
+                        <div class="flex justify-between mt-12 text-xs">
+                            <div class="text-center w-40">
+                                <p class="mb-12">បានឃើញ និងឯកភាព<br>មាតាបិតា ឬអាណាព្យាបាល</p>
+                                <p>.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">ខ្សុំ ថ្ងៃ......ខែ.............ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-semibold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"><i class="fa-solid fa-check-circle mr-2"></i> <span id="toast-msg">ជោគជ័យ!</span></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbz8ETGYL-SoieMa2XQ2CSWTPVLKuelcR6BgAfObFNLQPPA79Uz0GNnqQsYtqn4Afz-hXA/exec"; 
+        
+        let db = []; 
+        let isLoggedIn = false;
+        let dbAttendance = {}; 
+        
+        const monthsList = ['dec', 'jan', 'feb', 'mar', 'sem1', 'sem2'];
+        const monthNamesKh = {
+            'dec': 'ខែ ធ្នូ', 'jan': 'ខែ មករា', 'feb': 'ខែ កុម្ភៈ', 'mar': 'ខែ មីនា',
+            'sem1': 'ប្រឡងឆមាសទី១', 'sem2': 'ប្រឡងឆមាសទី២'
+        };
+        let myChart = null;
+        let dashChart = null; // សម្រាប់ Dashboard Chart
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.className = 'show';
+            setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+        }
+
+        function exportTableToExcel(tableID, filename = ''){
+            let table = document.getElementById(tableID);
+            let cloneTable = table.cloneNode(true);
+            let noPrintElements = cloneTable.querySelectorAll('.no-print');
+            noPrintElements.forEach(el => el.remove());
+            
+            cloneTable.querySelectorAll('input').forEach(input => {
+                let text = document.createTextNode(input.value);
+                input.parentNode.replaceChild(text, input);
+            });
+            
+            let wb = XLSX.utils.table_to_book(cloneTable, {sheet:"Sheet1"});
+            XLSX.writeFile(wb, filename + ".xlsx");
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងពិនិត្យ...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', username: user, password: pass })
+                });
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    isLoggedIn = true;
+                    document.getElementById('user-fullname').innerText = result.name;
+                    document.getElementById('user-avatar').innerText = result.name.charAt(0);
+                    document.getElementById('login-screen').style.display = 'none'; 
+                    document.getElementById('main-app').classList.remove('hidden');
+                    showToast(`ស្វាគមន៍ ${result.name}`);
+                    fetchStudents();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ! សូមពិនិត្យ URL ឬភ្ជាប់អ៊ីនធឺណិត។");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i> ចូលប្រើប្រាស់';
+                btn.disabled = false;
+            }
+        }
+
+        function handleLogout() {
+            if(confirm("តើលោកគ្រូពិតជាចង់ចាកចេញមែនទេ?")) location.reload();
+        }
+
+        async function fetchStudents() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                db = data.map(s => {
+                    let studentData = { 
+                        id: s.id.toString(), name: s.name, gender: s.gender, 
+                        dob: s.dob || '', pob: s.pob || '', father: s.father || '', mother: s.mother || '', 
+                        scores: s.scores || {} 
+                    };
+                    monthsList.forEach(m => {
+                        if(!studentData.scores[m]) {
+                            studentData.scores[m] = { total:0, avg:0, rank:0, grade:"" };
+                            for(let i=1; i<=18; i++) studentData.scores[m][`sub${i}`] = "";
+                        }
+                    });
+                    return studentData;
+                });
+                
+                updateAllViews();
+                
+                let now = new Date();
+                let monthStr = now.getFullYear() + '-' + ('0' + (now.getMonth()+1)).slice(-2);
+                document.getElementById('att-month-selector').value = monthStr;
+                
+                fetchAttendanceReport(); 
+                
+                showToast("ទាញយកទិន្នន័យរួចរាល់!");
+            } catch (error) {
+                console.error(error);
+                showToast("បរាជ័យក្នុងការភ្ជាប់ទៅទិន្នន័យ!");
+            }
+        }
+
+        function switchTab(tabId) {
+            ['dashboard', 'manage-students', 'attendance-report', 'detailed-sheet', 'monthly-results', 'leaderboard', 'honor-roll', 'student', 'tracking-book'].forEach(id => {
+                const view = document.getElementById(`view-${id}`);
+                const nav = document.getElementById(`nav-${id}`);
+                if(view) view.classList.add('hidden');
+                if(nav) nav.classList.remove('nav-active');
+            });
+            const selectedView = document.getElementById(`view-${tabId}`);
+            const selectedNav = document.getElementById(`nav-${tabId}`);
+            if(selectedView) selectedView.classList.remove('hidden');
+            if(selectedNav) selectedNav.classList.add('nav-active');
+
+            const titles = { 
+                'dashboard': 'ផ្ទាំងសង្ខេបរួម', 'manage-students': 'បញ្ជីឈ្មោះសិស្ស', 
+                'attendance-report': 'របាយការណ៍វត្តមាន',
+                'detailed-sheet': 'បញ្ចូលពិន្ទុ', 'monthly-results': 'លទ្ធផលប្រឡងផ្លូវការ', 
+                'leaderboard': 'តារាងចំណាត់ថ្នាក់', 'honor-roll': 'តារាងកិត្តិយស', 
+                'student': 'ការវិវត្តសិស្ស', 'tracking-book': 'សៀវភៅតាមដាន' 
+            };
+            document.getElementById('page-title').textContent = titles[tabId] || '';
+            if(tabId === 'detailed-sheet') loadDetailedSheet();
+            if(tabId === 'monthly-results') renderMonthlyResults();
+            if(tabId === 'dashboard') renderDashboardAdvanced();
+            if(tabId === 'attendance-report') {
+                if(!document.getElementById('att-month-selector').value) {
+                    let now = new Date();
+                    document.getElementById('att-month-selector').value = now.getFullYear() + '-' + ('0' + (now.getMonth()+1)).slice(-2);
+                }
+                handleMonthChange();
+            }
+        }
+
+        function updateAllViews() {
+            renderManageStudentsTable();
+            renderDashboardStats();
+            renderDashboardAdvanced();
+            populateProfileDropdown();
+            renderLeaderboard();
+            renderHonorRoll();
+            renderMonthlyResults();
+        }
+
+        async function addStudent(e) {
+            e.preventDefault();
+            const payload = {
+                action: "add_student",
+                id: document.getElementById('new-id').value.trim(),
+                name: document.getElementById('new-name').value.trim(),
+                gender: document.getElementById('new-gender').value,
+                dob: document.getElementById('new-dob').value.trim(),
+                pob: document.getElementById('new-pob').value.trim(),
+                father: document.getElementById('new-father').value.trim(),
+                mother: document.getElementById('new-mother').value.trim()
+            };
+
+            if(db.find(s => s.id === payload.id)) return alert("អត្តលេខនេះមានរួចហើយ!");
+
+            showToast("កំពុងរក្សាទុក...");
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                if(result.status === "success") {
+                    payload.scores = {};
+                    monthsList.forEach(m => {
+                        payload.scores[m] = { total:0, avg:0, rank:0, grade:"" };
+                        for(let i=1; i<=18; i++) payload.scores[m][`sub${i}`] = "";
+                    });
+                    db.push(payload);
+                    document.getElementById('add-student-form').reset();
+                    updateAllViews();
+                    handleMonthChange();
+                    showToast("បានបន្ថែមសិស្សថ្មី!");
+                } else { showToast("មានបញ្ហា!"); }
+            } catch(error) { showToast("បរាជ័យក្នុងការភ្ជាប់!"); }
+        }
+
+        function openEditStudent(id) {
+            const s = db.find(x => x.id === id);
+            if(!s) return;
+            document.getElementById('edit-old-id').value = s.id;
+            document.getElementById('edit-id').value = s.id;
+            document.getElementById('edit-name').value = s.name;
+            document.getElementById('edit-gender').value = s.gender;
+            document.getElementById('edit-dob').value = s.dob || '';
+            document.getElementById('edit-pob').value = s.pob || '';
+            document.getElementById('edit-father').value = s.father || '';
+            document.getElementById('edit-mother').value = s.mother || '';
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        async function submitEditStudent(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const payload = {
+                action: "edit_student",
+                id: id,
+                name: document.getElementById('edit-name').value.trim(),
+                gender: document.getElementById('edit-gender').value,
+                dob: document.getElementById('edit-dob').value.trim(),
+                pob: document.getElementById('edit-pob').value.trim(),
+                father: document.getElementById('edit-father').value.trim(),
+                mother: document.getElementById('edit-mother').value.trim()
+            };
+
+            showToast("កំពុងកែប្រែទិន្នន័យ...");
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                if(result.status === "success") {
+                    const idx = db.findIndex(s => s.id === id);
+                    if(idx !== -1) {
+                        db[idx] = { ...db[idx], ...payload };
+                    }
+                    closeEditModal();
+                    updateAllViews();
+                    showToast("បានកែប្រែព័ត៌មានសិស្សជោគជ័យ!");
+                } else { showToast("កែប្រែមិនបានសម្រេច"); }
+            } catch (err) {
+                showToast("បញ្ហាការភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ!");
+            }
+        }
+
+        async function deleteStudent(id, name) {
+            if(!confirm(`តើអ្នកពិតជាចង់លុបសិស្សឈ្មោះ "${name}" (អត្តលេខ: ${id}) មែនទេ?`)) return;
+            
+            showToast("កំពុងលុបទិន្នន័យ...");
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "delete_student", id: id }) });
+                const result = await response.json();
+                if(result.status === "success") {
+                    db = db.filter(s => s.id !== id);
+                    updateAllViews();
+                    handleMonthChange();
+                    showToast("បានលុបសិស្សចេញពីបញ្ជី!");
+                } else { showToast("មិនអាចលុបបានទេ"); }
+            } catch (err) {
+                showToast("បញ្ហាការតភ្ជាប់!");
+            }
+        }
+
+        function renderManageStudentsTable() {
+            const tbody = document.getElementById('manage-students-tbody');
+            tbody.innerHTML = '';
+            const sortedDb = [...db].sort((a, b) => a.name.localeCompare(b.name, 'km'));
+            document.getElementById('student-list-count').innerText = `សរុប ${db.length} នាក់`;
+
+            sortedDb.forEach((s, idx) => {
+                tbody.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-3 py-2 border-r text-center">${idx + 1}</td>
+                        <td class="px-3 py-2 border-r font-mono text-gray-500 text-center">${s.id}</td>
+                        <td class="px-4 py-2 border-r font-bold text-gray-800">${s.name}</td>
+                        <td class="px-3 py-2 border-r text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-medium">${s.gender}</td>
+                        <td class="px-3 py-2 border-r">${s.dob || '-'}</td>
+                        <td class="px-3 py-2 border-r">${s.pob || '-'}</td>
+                        <td class="px-3 py-2 border-r text-xs text-gray-500">ឪ៖ ${s.father||'-'}<br>ម៖ ${s.mother||'-'}</td>
+                        <td class="px-3 py-2 text-center no-print">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="openEditStudent('${s.id}')" class="text-blue-600 hover:text-blue-800" title="កែប្រែ"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteStudent('${s.id}', '${s.name}')" class="text-red-500 hover:text-red-700" title="លុប"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // មុខងារវត្តមានប្រចាំខែ (DYNAMIC DAYS)
+        // ==========================================
+        let currentDaysInMonth = 31; // Default
+        
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+        
+        function handleMonthChange() {
+            const yyyyMm = document.getElementById('att-month-selector').value;
+            if(yyyyMm) {
+                const parts = yyyyMm.split('-');
+                currentDaysInMonth = getDaysInMonth(parseInt(parts[0]), parseInt(parts[1]));
+            }
+            fetchAttendanceReport();
+        }
+
+        async function fetchAttendanceReport() {
+            const yyyyMm = document.getElementById('att-month-selector').value; 
+            if(!yyyyMm) return;
+            
+            showToast("កំពុងទាញយកទិន្នន័យវត្តមាន...");
+            try {
+                const response = await fetch(`${API_URL}?action=get_attendance&month=${yyyyMm}`);
+                const result = await response.json();
+                
+                if(result.status === "success" && result.data) {
+                    dbAttendance = result.data;
+                } else {
+                    dbAttendance = {}; 
+                }
+            } catch (err) {
+                console.error(err);
+                dbAttendance = {}; 
+            }
+            
+            renderAttendanceReport();
+        }
+
+        function renderAttendanceReport() {
+            const daysRow = document.getElementById('att-days-row');
+            const tbody = document.getElementById('att-report-tbody');
+            const headerColspan = document.getElementById('att-days-header');
+            
+            if(!daysRow || !tbody) return;
+            
+            // Set dynamic colspan
+            if(headerColspan) headerColspan.colSpan = currentDaysInMonth;
+            
+            daysRow.innerHTML = '';
+            for(let i=1; i<=currentDaysInMonth; i++) {
+                daysRow.innerHTML += `<th class="bg-green-50 px-0.5 py-1 w-6">${i}</th>`;
+            }
+            daysRow.innerHTML += `<th class="bg-blue-50 w-8">វ</th><th class="bg-blue-50 w-8 text-red-600">អ</th><th class="bg-blue-50 w-8 text-yellow-600">ច</th>`;
+            
+            tbody.innerHTML = '';
+            const sortedDb = [...db].sort((a, b) => a.name.localeCompare(b.name, 'km'));
+            if(sortedDb.length === 0) return tbody.innerHTML = `<tr><td colspan="${currentDaysInMonth + 6}" class="py-8 text-center text-gray-400">គ្មានបញ្ជីសិស្សទេ</td></tr>`;
+
+            sortedDb.forEach((s, idx) => {
+                let rowHtml = `
+                    <tr class="bg-white border-b hover:bg-gray-50" data-studentid="${s.id}">
+                        <td class="text-center">${idx + 1}</td>
+                        <td class="text-left px-2 font-bold text-gray-800">${s.name}</td>
+                        <td class="text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-medium">${s.gender}</td>
+                `;
+                
+                let studentAtt = dbAttendance[s.id] || {};
+                
+                for(let i=1; i<=currentDaysInMonth; i++) {
+                    let val = studentAtt[i] || ''; 
+                    rowHtml += `<td><input type="text" class="att-input d${i}" maxlength="1" value="${val}"></td>`;
+                }
+                
+                rowHtml += `
+                        <td class="text-center font-bold text-green-600 bg-gray-50 tot-v">0</td>
+                        <td class="text-center font-bold text-red-500 bg-gray-50 tot-a">0</td>
+                        <td class="text-center font-bold text-yellow-500 bg-gray-50 tot-l">0</td>
+                    </tr>
+                `;
+                tbody.innerHTML += rowHtml;
+            });
+            
+            calculateAttendance();
+        }
+
+        function calculateAttendance() {
+            const rows = document.querySelectorAll('#att-report-tbody tr[data-studentid]');
+            rows.forEach(row => {
+                let v = 0, a = 0, l = 0;
+                for(let i=1; i<=currentDaysInMonth; i++) {
+                    let input = row.querySelector(`.d${i}`);
+                    if(input) {
+                        let val = input.value.toUpperCase();
+                        input.value = val; 
+                        if(val === 'V') v++;
+                        else if(val === 'A') a++;
+                        else if(val === 'L') l++;
+                    }
+                }
+                row.querySelector('.tot-v').innerText = v;
+                row.querySelector('.tot-a').innerText = a;
+                row.querySelector('.tot-l').innerText = l;
+            });
+            showToast("គណនាសរុបវត្តមានរួចរាល់!");
+        }
+        
+        async function saveMonthlyAttendance() {
+            const yyyyMm = document.getElementById('att-month-selector').value;
+            if(!yyyyMm) return alert("សូមជ្រើសរើសខែជាមុនសិន!");
+            
+            calculateAttendance();
+            
+            const rows = document.querySelectorAll('#att-report-tbody tr[data-studentid]');
+            let attData = {}; 
+            
+            rows.forEach(row => {
+                let id = row.getAttribute('data-studentid');
+                let days = {};
+                let hasData = false;
+                
+                for(let i=1; i<=currentDaysInMonth; i++) {
+                    let val = row.querySelector(`.d${i}`).value.toUpperCase();
+                    if(val) {
+                        days[i] = val;
+                        hasData = true;
+                    }
+                }
+                
+                if(hasData) {
+                    attData[id] = days;
+                }
+            });
+            
+            const btn = document.getElementById('btn-save-monthly-att');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងរក្សាទុក...';
+            
+            try {
+                const response = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: 'save_monthly_attendance', 
+                        month: yyyyMm, 
+                        data: attData 
+                    }) 
+                });
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    showToast(`បានរក្សាទុកវត្តមានសម្រាប់ ${yyyyMm} ជោគជ័យ!`);
+                } else {
+                    showToast("មានបញ្ហាក្នុងការរក្សាទុក");
+                }
+            } catch(e) { 
+                showToast("បរាជ័យក្នុងការភ្ជាប់ទៅ Server!"); 
+            } finally { 
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមានប្រចាំខែ'; 
+            }
+        }
+        // ==========================================
+
+        function loadDetailedSheet() {
+            const m = document.getElementById('month-selector').value;
+            const tbody = document.getElementById('detailed-tbody');
+            tbody.innerHTML = '';
+            const sortedDb = [...db].sort((a, b) => a.name.localeCompare(b.name, 'km'));
+            sortedDb.forEach((s, idx) => {
+                const sc = s.scores[m] || {};
+                let inputHtml = "";
+                for(let i=1; i<=18; i++) inputHtml += `<td><input type="number" min="0" max="10" step="0.5" class="grade-input s${i}" value="${sc[`sub${i}`] !== undefined ? sc[`sub${i}`] : ''}"></td>`;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-blue-50 transition-colors" data-id="${s.id}">
+                        <td>${idx + 1}</td><td class="text-left px-2 font-bold text-gray-800">${s.name}</td><td class="font-bold">${s.gender}</td>
+                        ${inputHtml}
+                        <td class="font-bold bg-gray-100">${sc.total || ''}</td><td class="font-bold bg-blue-50 text-blue-700">${sc.avg || ''}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function saveDetailedScores() {
+            const m = document.getElementById('month-selector').value;
+            const rows = document.querySelectorAll('#detailed-tbody tr[data-id]');
+            let monthScoresData = []; 
+            rows.forEach(row => {
+                let currentStudentScore = { id: row.getAttribute('data-id') };
+                for(let i=1; i<=18; i++) currentStudentScore[`sub${i}`] = row.querySelector(`.s${i}`).value !== "" ? parseFloat(row.querySelector(`.s${i}`).value) : ""; 
+                monthScoresData.push(currentStudentScore);
+            });
+            document.body.style.cursor = 'wait'; 
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "save_scores", month: m, scores: monthScoresData }) });
+                await fetchStudents(); 
+                loadDetailedSheet(); 
+                showToast(`ជោគជ័យ! ទិន្នន័យត្រូវបានគណនា និងរក្សាទុក។`);
+            } catch (error) { showToast(`បរាជ័យក្នុងការរក្សាទុក`); } 
+            finally { document.body.style.cursor = 'default'; }
+        }
+
+        function renderMonthlyResults() {
+            const m = document.getElementById('result-month-selector').value;
+            const tbody = document.getElementById('monthly-results-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            const sorted = [...db].filter(s => s.scores[m] && s.scores[m].avg > 0).sort((a, b) => b.scores[m].avg - a.scores[m].avg);
+            if(sorted.length === 0) return tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-gray-400">មិនទាន់មានទិន្នន័យលទ្ធផលសម្រាប់ចន្លោះពេលនេះទេ</td></tr>`;
+
+            let passCount = 0, passFemale = 0;
+            sorted.forEach((s, idx) => {
+                const sc = s.scores[m];
+                if(sc.avg >= 5) {
+                    passCount++;
+                    if(s.gender === 'ស') passFemale++;
+                }
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="border border-gray-400 p-2">${idx + 1}</td>
+                        <td class="border border-gray-400 p-2 text-gray-600">${s.id}</td>
+                        <td class="border border-gray-400 p-2 text-left font-bold text-gray-800">${s.name}</td>
+                        <td class="border border-gray-400 p-2 ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'}">${s.gender}</td>
+                        <td class="border border-gray-400 p-2">${sc.total || 0}</td>
+                        <td class="border border-gray-400 p-2 font-bold text-blue-700">${sc.avg || 0}</td>
+                        <td class="border border-gray-400 p-2 font-bold text-yellow-700">${idx + 1}</td>
+                        <td class="border border-gray-400 p-2 font-bold">${sc.grade || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('sum-total').innerText = db.length;
+            document.getElementById('sum-female').innerText = db.filter(s => s.gender === 'ស').length;
+            document.getElementById('sum-pass').innerText = passCount;
+            document.getElementById('sum-pass-f').innerText = passFemale;
+            document.getElementById('sum-fail').innerText = db.length - passCount;
+            document.getElementById('sum-fail-f').innerText = db.filter(s => s.gender === 'ស' && !(s.scores[m] && s.scores[m].avg >= 5)).length;
+            document.getElementById('result-month-title').innerText = monthNamesKh[m] || '';
+        }
+
+        // ==========================================
+        // មុខងារ Dashboard (ថ្មី) បង្ហាញ Chart និង Top 3
+        // ==========================================
+        function renderDashboardStats() {
+            document.getElementById('stat-total').innerHTML = `${db.length}`;
+            document.getElementById('stat-female').innerHTML = `${db.filter(s => s.gender === 'ស').length}`;
+            document.getElementById('stat-male').innerHTML = `${db.filter(s => s.gender === 'ប').length}`;
+        }
+        
+        function renderDashboardAdvanced() {
+            // Find the latest month that has data
+            let latestMonth = null;
+            // Iterate backwards to find latest
+            for(let i=monthsList.length-1; i>=0; i--) {
+                let m = monthsList[i];
+                let hasData = db.some(s => s.scores[m] && s.scores[m].avg > 0);
+                if(hasData) {
+                    latestMonth = m;
+                    break;
+                }
+            }
+            
+            const chartDiv = document.getElementById('passFailChart');
+            const noDataDiv = document.getElementById('chart-no-data');
+            const top3Container = document.getElementById('dash-top3-container');
+            
+            if(!latestMonth) {
+                document.getElementById('dash-chart-month').innerText = "មិនមានទិន្នន័យ";
+                noDataDiv.classList.remove('hidden');
+                chartDiv.classList.add('hidden');
+                top3Container.innerHTML = '<p class="text-sm text-gray-400 text-center mt-6">មិនទាន់មានសិស្សឆ្នើមទេ</p>';
+                return;
+            }
+            
+            document.getElementById('dash-chart-month').innerText = monthNamesKh[latestMonth];
+            noDataDiv.classList.add('hidden');
+            chartDiv.classList.remove('hidden');
+            
+            // Calculate Pass/Fail
+            let pass = 0, fail = 0;
+            db.forEach(s => {
+                if(s.scores[latestMonth] && s.scores[latestMonth].avg > 0) {
+                    if(s.scores[latestMonth].avg >= 5) pass++;
+                    else fail++;
+                }
+            });
+            
+            // Draw Chart
+            const ctx = document.getElementById('passFailChart').getContext('2d');
+            if(dashChart) dashChart.destroy();
+            dashChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    font: { family: 'Moul', size: 14 },
+                    labels: ['សិស្សជាប់ (>=5.0)', 'សិស្សធ្លាក់ (<5.0)'],
+                    datasets: [{
+                        data: [pass, fail],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0
+                        ,
+
+                        
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } },
+                    cutout: '70%'
+                }
+            });
+            
+            // Render Top 3
+            top3Container.innerHTML = '';
+            const top3 = [...db].filter(s => s.scores[latestMonth] && s.scores[latestMonth].avg > 0)
+                                .sort((a,b) => b.scores[latestMonth].avg - a.scores[latestMonth].avg)
+                                .slice(0, 3);
+                                
+            const medals = ['text-yellow-400', 'text-gray-400', 'text-amber-600'];
+            top3.forEach((s, idx) => {
+                top3Container.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-medal ${medals[idx]} text-2xl"></i>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">${s.name}</h4>
+                                <p class="text-xs text-gray-500">អត្តលេខ: ${s.id}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-blue-700">${s.scores[latestMonth].avg}</p>
+                            <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">${s.scores[latestMonth].grade}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLeaderboard() {
+            const m = document.getElementById('leaderboard-filter') ? document.getElementById('leaderboard-filter').value : 'dec';
+            const tbody = document.getElementById('leaderboard-tbody');
+            tbody.innerHTML = '';
+            const sorted = [...db].filter(s => s.scores[m] && s.scores[m].avg > 0).sort((a, b) => b.scores[m].avg - a.scores[m].avg);
+            if(sorted.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-gray-400 text-center">មិនទាន់មានទិន្នន័យ។</td></tr>`;
+
+            sorted.forEach((s) => {
+                const sc = s.scores[m];
+                let rankStyle = sc.rank <= 3 ? "bg-yellow-100 text-yellow-700 w-8 h-8 rounded-full flex items-center justify-center mx-auto font-bold" : "text-gray-500 font-medium";
+                tbody.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 text-center"><div class="${rankStyle}">${sc.rank}</div></td>
+                        <td class="px-6 py-4 font-mono text-xs text-gray-400">${s.id}</td>
+                        <td class="px-6 py-4 font-bold text-gray-800">${s.name}</td>
+                        <td class="px-6 py-4 text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-medium">${s.gender}</td>
+                        <td class="px-6 py-4 text-center font-bold text-blue-700 text-lg">${sc.avg}</td>
+                        <td class="px-6 py-4 text-center"><span class="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-600">${sc.grade}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderHonorRoll() {
+            const m = document.getElementById('honor-month-selector') ? document.getElementById('honor-month-selector').value : 'dec';
+            const container = document.getElementById('honor-roll-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const top5 = [...db].filter(s => s.scores[m] && s.scores[m].avg > 0).sort((a,b) => b.scores[m].avg - a.scores[m].avg).slice(0, 5);
+            if(top5.length === 0) return container.innerHTML = '<p class="text-gray-400 text-center col-span-5 py-8">មិនទាន់មានទិន្នន័យសម្រាប់ចន្លោះពេលនេះទេ</p>';
+
+            const medals = ['text-yellow-400 text-4xl', 'text-gray-400 text-3xl', 'text-amber-600 text-3xl', 'text-blue-400 text-2xl', 'text-blue-400 text-2xl'];
+            
+            top5.forEach((s, idx) => {
+                container.innerHTML += `
+                    <div class="bg-gradient-to-b from-blue-50 to-white border border-blue-100 rounded-2xl p-5 text-center shadow relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-blue-500"></div>
+                        <i class="fa-solid fa-medal ${medals[idx]} mb-3"></i>
+                        <div class="w-14 h-14 bg-white border-2 border-blue-200 rounded-full flex items-center justify-center mx-auto mb-2 text-blue-800 text-xl font-bold shadow-inner">
+                            ${s.name.charAt(0)}
+                        </div>
+                        <h3 class="font-moul text-xs text-gray-800 mb-1 truncate">${s.name}</h3>
+                        <p class="text-[11px] text-gray-500 mb-2">ចំណាត់ថ្នាក់លេខ ${s.scores[m].rank || idx + 1}</p>
+                        <div class="bg-blue-100 rounded-lg p-1.5">
+                            <p class="text-xs text-blue-800 font-bold">មធ្យមភាគ៖ ${s.scores[m].avg}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function populateProfileDropdown() {
+            const currentVal1 = document.getElementById('profile-student-select') ? document.getElementById('profile-student-select').value : '';
+            const currentVal2 = document.getElementById('tracking-student-select') ? document.getElementById('tracking-student-select').value : '';
+            
+            let optionsHtml = '<option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>';
+            const sorted = [...db].sort((a,b) => a.name.localeCompare(b.name, 'km'));
+            sorted.forEach(s => { optionsHtml += `<option value="${s.id}">${s.name} (${s.gender}) - ${s.id}</option>`; });
+            
+            if(document.getElementById('profile-student-select')) {
+                document.getElementById('profile-student-select').innerHTML = optionsHtml;
+                if(currentVal1) document.getElementById('profile-student-select').value = currentVal1;
+            }
+            if(document.getElementById('tracking-student-select')) {
+                document.getElementById('tracking-student-select').innerHTML = optionsHtml;
+                if(currentVal2) document.getElementById('tracking-student-select').value = currentVal2;
+            }
+        }
+
+        function renderStudentProfile() {
+            const id = document.getElementById('profile-student-select').value;
+            const area = document.getElementById('student-profile-area');
+            const empty = document.getElementById('student-empty-state');
+            if(!id) { area.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+
+            area.classList.remove('hidden'); empty.classList.add('hidden');
+            const s = db.find(x => x.id === id);
+
+            document.getElementById('student-avatar').textContent = s.name.charAt(0);
+            document.getElementById('student-avatar').className = `w-20 h-20 rounded-full text-white text-3xl font-bold mb-3 flex items-center justify-center shadow-md ${s.gender==='ស'?'bg-pink-500':'bg-blue-500'}`;
+            document.getElementById('profile-name').textContent = s.name;
+            document.getElementById('profile-id-gender').textContent = `អត្តលេខ៖ ${s.id} | ភេទ៖ ${s.gender}`;
+
+            const m = 'sem1'; // Default display for profile summary can be recent semester
+            const sc = s.scores[m] || {total:0, avg:0, rank:0, grade:""};
+            document.getElementById('prof-total').textContent = sc.total || '-';
+            document.getElementById('prof-avg').textContent = sc.avg || '-';
+            document.getElementById('prof-rank').textContent = sc.rank ? `#${sc.rank}` : '-';
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['ធ្នូ', 'មករា', 'កុម្ភៈ', 'មីនា', 'ឆមាស១', 'ឆមាស២'],
+                    datasets: [{
+                        label: 'មធ្យមភាគការសិក្សា',
+                        data: [
+                            s.scores.dec?.avg || 0, s.scores.jan?.avg || 0, 
+                            s.scores.feb?.avg || 0, s.scores.mar?.avg || 0,
+                            s.scores.sem1?.avg || 0, s.scores.sem2?.avg || 0
+                        ],
+                        borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, fill: true, tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 10 } } }
+            });
+        }
+
+        function generateTrackingBook() {
+            const id = document.getElementById('tracking-student-select').value;
+            if(!id) return alert("សូមជ្រើសរើសសិស្សជាមុនសិន!");
+            
+            const s = db.find(x => x.id === id);
+            document.getElementById('printable-report').classList.remove('hidden');
+            
+            document.getElementById('tb-id').innerText = s.id;
+            document.getElementById('tb-name').innerText = s.name;
+            document.getElementById('tb-gender').innerText = s.gender;
+            
+            const tbody = document.getElementById('tb-scores-body');
+            tbody.innerHTML = '';
+            
+            monthsList.forEach(m => {
+                const sc = s.scores[m];
+                if(sc && sc.avg > 0) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="border border-gray-800 p-2 font-bold">${monthNamesKh[m] || m}</td>
+                            <td class="border border-gray-800 p-2">${sc.total}</td>
+                            <td class="border border-gray-800 p-2 font-bold text-blue-800">${sc.avg}</td>
+                            <td class="border border-gray-800 p-2">${sc.rank}</td>
+                            <td class="border border-gray-800 p-2">${sc.grade}</td>
+                            <td class="border border-gray-800 p-2"></td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            if(tbody.innerHTML === '') {
+                tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-800 p-4 text-gray-400">មិនទាន់មានទិន្នន័យពិន្ទុឡើយ</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>
