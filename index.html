@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន - ថ្នាក់ទី២</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+    
+    <!-- Link to Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 text-3xl">
+                <i class="fa-solid fa-school"></i>
+            </div>
+            <h2 class="font-moul text-xl text-blue-800 mb-1">សាលាបឋមសិក្សា ខ្សុំ</h2>
+            <p class="text-gray-500 text-sm mb-6">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន</p>
+            
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-4 text-left">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">គណនី (Username)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="login-user" class="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    </div>
+                </div>
+                <div class="mb-6 text-left">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ពាក្យសម្ងាត់ (Password)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="password" id="login-pass" class="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    </div>
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-md">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> ចូលប្រើប្រាស់
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT STUDENT MODAL -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 m-4">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i> កែប្រែព័ត៌មានសិស្ស</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="edit-student-form" onsubmit="submitEditStudent(event)" class="space-y-3">
+                <input type="hidden" id="edit-old-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">អត្តលេខ</label>
+                        <input type="text" id="edit-id" class="w-full p-2 border rounded text-sm bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ភេទ</label>
+                        <select id="edit-gender" class="w-full p-2 border rounded text-sm bg-white">
+                            <option value="ស">ស្រី</option>
+                            <option value="ប">ប្រុស</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">គោត្តនាម និងនាម</label>
+                    <input type="text" id="edit-name" required class="w-full p-2 border rounded text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ថ្ងៃខែឆ្នាំកំណើត</label>
+                        <input type="text" id="edit-dob" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ទីកន្លែងកំណើត</label>
+                        <input type="text" id="edit-pob" class="w-full p-2 border rounded text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ឈ្មោះឪពុក</label>
+                        <input type="text" id="edit-father" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-600">ឈ្មោះម្តាយ</label>
+                        <input type="text" id="edit-mother" class="w-full p-2 border rounded text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold">បោះបង់</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">រក្សាទុក</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div id="main-app" class="flex w-full h-full hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10">
+            <div class="h-20 flex items-center justify-center border-b border-gray-100 bg-blue-50 px-3">
+                <div class="text-sm font-bold text-blue-800 flex items-center gap-2 font-moul leading-snug text-center">
+                    <i class="fa-solid fa-book-open-reader text-blue-600 text-lg"></i> ប្រព័ន្ធគ្រប់គ្រងថ្នាក់ទី២ «ខ»
+                </div>
+            </div>
+            
+            <div class="overflow-y-auto flex-1">
+                <nav class="py-4 flex flex-col gap-1 px-3">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-1">ទិដ្ឋភាពទូទៅ</p>
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item nav-active flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
+                    </button>
+                    
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">គ្រប់គ្រងសិស្ស និងវត្តមាន</p>
+                    <button onclick="switchTab('manage-students')" id="nav-manage-students" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-users-gear w-5 text-center"></i> បញ្ជីឈ្មោះសិស្ស
+                    </button>
+                    <button onclick="switchTab('attendance-report')" id="nav-attendance-report" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-table-list w-5 text-center text-green-600"></i> ស្រង់វត្តមានប្រចាំខែ
+                    </button>
+
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">ការវាយតម្លៃ</p>
+                    <button onclick="switchTab('detailed-sheet')" id="nav-detailed-sheet" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-pen-to-square w-5 text-center"></i> បញ្ចូលពិន្ទុ
+                    </button>
+                    <button onclick="switchTab('monthly-results')" id="nav-monthly-results" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-file-lines w-5 text-center text-teal-600"></i> លទ្ធផលប្រឡង
+                    </button>
+                    <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-trophy w-5 text-center"></i> ចំណាត់ថ្នាក់រួម
+                    </button>
+                    <button onclick="switchTab('honor-roll')" id="nav-honor-roll" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-medal w-5 text-center text-yellow-500"></i> តារាងកិត្តិយស
+                    </button>
+
+                    <p class="text-[11px] font-bold text-gray-400 uppercase ml-2 mb-1 mt-3">របាយការណ៍សិស្ស</p>
+                    <button onclick="switchTab('student')" id="nav-student" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-chart-line w-5 text-center text-indigo-500"></i> ការវិវត្តសិស្ស
+                    </button>
+                    <button onclick="switchTab('tracking-book')" id="nav-tracking-book" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 font-medium text-sm text-left">
+                        <i class="fa-solid fa-book w-5 text-center text-red-500"></i> សៀវភៅតាមដាន
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="p-3 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs" id="user-avatar">គ្រូ</div>
+                        <div class="text-xs">
+                            <p class="font-bold text-gray-800" id="user-fullname">លោកគ្រូ/អ្នកគ្រូ</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-red-500 transition" title="ចាកចេញ">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto relative bg-gray-50">
+            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-0 sticky top-0 no-print">
+                <h1 id="page-title" class="text-lg font-bold text-gray-800">Dashboard</h1>
+                <button onclick="fetchStudents()" class="text-gray-600 hover:text-blue-600 bg-gray-100 px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 transition">
+                    <i class="fa-solid fa-rotate"></i> ទាញយកទិន្នន័យថ្មី
+                </button>
+            </header>
+
+            <div class="p-6">
+                <!-- 1. DASHBOARD VIEW -->
+                <div id="view-dashboard" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-users"></i></div>
+                            <div><p class="text-sm text-blue-100 mb-1">សិស្សសរុប</p><h3 class="text-3xl font-bold" id="stat-total">0</h3></div>
+                        </div>
+                        <div class="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-female"></i></div>
+                            <div><p class="text-sm text-pink-100 mb-1">សិស្សស្រី</p><h3 class="text-3xl font-bold" id="stat-female">0</h3></div>
+                        </div>
+                        <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl p-6 shadow-md text-white flex items-center gap-6">
+                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-male"></i></div>
+                            <div><p class="text-sm text-indigo-100 mb-1">សិស្សប្រុស</p><h3 class="text-3xl font-bold" id="stat-male">0</h3></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800">ស្ថិតិសិស្សជាប់ និងធ្លាក់</h3>
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded" id="dash-chart-month">ខែ...</span>
+                            </div>
+                            <div class="h-[250px] flex items-center justify-center relative">
+                                <canvas id="passFailChart"></canvas>
+                                <div id="chart-no-data" class="absolute hidden text-gray-400">មិនទាន់មានទិន្នន័យ</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-800 mb-4"><i class="fa-solid fa-crown text-yellow-500 mr-2"></i> សិស្សឆ្នើម Top 3</h3>
+                            <div id="dash-top3-container" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. MANAGE STUDENTS VIEW -->
+                <div id="view-manage-students" class="hidden space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 bg-blue-50 border-b border-gray-200">
+                            <h2 class="text-md font-bold text-blue-800 mb-3"><i class="fa-solid fa-user-plus"></i> បន្ថែមសិស្សថ្មី</h2>
+                            <form id="add-student-form" onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div><input type="text" id="new-id" required placeholder="អត្តលេខ" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-name" required placeholder="គោត្តនាម និងនាម" class="w-full p-2 border rounded text-sm"></div>
+                                <div>
+                                    <select id="new-gender" class="w-full p-2 border rounded text-sm bg-white">
+                                        <option value="ស">ស្រី</option>
+                                        <option value="ប">ប្រុស</option>
+                                    </select>
+                                </div>
+                                <div><input type="text" id="new-dob" placeholder="ថ្ងៃខែឆ្នាំកំណើត (ឧ. 15-05-2015)" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-pob" placeholder="ទីកន្លែងកំណើត (ស្រុក/ខេត្ត)" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-father" placeholder="ឈ្មោះឪពុក" class="w-full p-2 border rounded text-sm"></div>
+                                <div><input type="text" id="new-mother" placeholder="ឈ្មោះម្តាយ" class="w-full p-2 border rounded text-sm"></div>
+                                <div>
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm shadow-sm transition">រក្សាទុក</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="overflow-x-auto p-4 print-area">
+                            <div class="flex justify-between items-center mb-3 no-print">
+                                <div>
+                                    <h3 class="font-bold text-gray-700 inline-block">បញ្ជីឈ្មោះសិស្សក្នុងថ្នាក់</h3>
+                                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-bold ml-2" id="student-list-count"></span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="exportTableToExcel('manage-students-table', 'បញ្ជីឈ្មោះសិស្ស')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                    <button onclick="window.print()" class="bg-gray-800 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-black"><i class="fa-solid fa-file-pdf mr-1"></i> Print/PDF</button>
+                                </div>
+                            </div>
+                            <table id="manage-students-table" class="w-full text-sm text-left text-gray-600 border border-gray-200">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-3 py-3 border-r text-center w-12">ល.រ</th>
+                                        <th class="px-3 py-3 border-r text-center w-24">អត្តលេខ</th>
+                                        <th class="px-4 py-3 border-r">ឈ្មោះ</th>
+                                        <th class="px-3 py-3 border-r text-center w-16">ភេទ</th>
+                                        <th class="px-3 py-3 border-r">ថ្ងៃខែឆ្នាំកំណើត</th>
+                                        <th class="px-3 py-3 border-r">ទីកន្លែងកំណើត</th>
+                                        <th class="px-3 py-3 border-r">ឪពុក/ម្តាយ</th>
+                                        <th class="px-3 py-3 text-center w-24 no-print">សកម្មភាព</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manage-students-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ATTENDANCE REPORT VIEW -->
+                <div id="view-attendance-report" class="hidden space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 print-area p-6">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡា</p>
+                                <p class="font-moul text-[12px] text-green-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print flex justify-end gap-2">
+                                <button onclick="exportTableToExcel('attendance-report-table', 'របាយការណ៍វត្តមាន')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-black"><i class="fa-solid fa-print mr-1"></i> បោះពុម្ព</button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-green-800">បញ្ជីវត្តមានសិស្សប្រចាំខែ</h2>
+                            <div class="flex justify-center items-center gap-2 mt-2">
+                                <span class="font-bold text-gray-800">សម្រាប់ខែ៖</span>
+                                <input type="month" id="att-month-selector" class="border border-gray-300 rounded p-1 text-base font-semibold bg-white text-green-700 no-print" onchange="handleMonthChange()">
+                                <span class="font-bold text-gray-800 ml-3">ឆ្នាំសិក្សា ២០២៦-២០២៧</span>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto pb-4">
+                            <table id="attendance-report-table" class="report-table w-full whitespace-nowrap">
+                                <thead class="bg-gray-100 sticky top-0">
+                                    <tr>
+                                        <th rowspan="3" class="w-10">ល.រ</th>
+                                        <th rowspan="3" class="w-40 text-left px-2">ឈ្មោះ</th>
+                                        <th rowspan="3" class="w-10">ភេទ</th>
+                                        <th id="att-days-header" colspan="31" class="bg-green-50 text-green-900 border-green-200">កាលបរិច្ឆេទ និងថ្ងៃក្នុងខែ</th>
+                                        <th colspan="3" class="bg-blue-50 text-blue-900">សរុបប្រចាំខែ</th>
+                                    </tr>
+                                    <tr class="text-[11px]" id="att-khmer-days-row"></tr>
+                                    <tr class="text-[10px]" id="att-days-row"></tr>
+                                </thead>
+                                <tbody id="att-report-tbody"></tbody>
+                            </table>
+                            <div class="flex justify-between items-center mt-3">
+                                <p class="text-xs text-gray-500">*សម្គាល់៖ សូមវាយអក្សរ <strong class="text-green-600">V</strong> = វត្តមាន, <strong class="text-red-500">A</strong> = អវត្តមាន, <strong class="text-yellow-600">L</strong> = ច្បាប់។ ថ្ងៃសៅរ៍ និងអាទិត្យ ត្រូវបានផ្អាកសម្រាកស្វ័យប្រវត្តិ។
+                                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700 ml-4 no-print" onclick="calculateAttendance()"><i class="fa-solid fa-calculator"></i> គណនាសរុប</button>
+                                </p>
+                                <button onclick="saveMonthlyAttendance()" id="btn-save-monthly-att" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 no-print"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមានប្រចាំខែ</button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-1/3"></div>
+                            <div class="w-1/3 text-center"> <br> <br> <br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. DETAILED GRADE SHEET VIEW -->
+                <div id="view-detailed-sheet" class="hidden space-y-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 print-area">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡា</p>
+                                <p class="font-moul text-[12px] text-blue-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print">
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black">
+                                    <i class="fa-solid fa-print mr-1"></i> បោះពុម្ព
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-blue-800">បញ្ជីស្រង់ពិន្ទុ</h2>
+                            <div class="flex justify-center items-center gap-2 mt-2">
+                                <select id="month-selector" class="border border-gray-300 rounded p-1 text-base font-semibold bg-white text-blue-700" onchange="loadDetailedSheet()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <span class="font-bold text-gray-800">ឆ្នាំសិក្សា ២០២៦-២០២៧</span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto pb-4 max-h-[60vh]">
+                            <table class="grade-table w-full whitespace-nowrap" id="official-grade-table">
+                                <thead class="sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th rowspan="2" class="w-10">ល.រ</th>
+                                        <th rowspan="2" class="w-48 text-left px-2">ឈ្មោះ</th>
+                                        <th rowspan="2" class="w-12">ភេទ</th>
+                                        <th colspan="4" class="bg-blue-100 text-blue-900">ភាសាខ្មែរ</th>
+                                        <th colspan="5" class="bg-green-100 text-green-900">គណិតវិទ្យា</th>
+                                        <th colspan="4" class="bg-yellow-100 text-yellow-900">វិទ្យាសាស្រ្ត</th>
+                                        <th colspan="3" class="bg-orange-100 text-orange-900">សិក្សាសង្គម</th>
+                                        <th class="bg-red-100 text-red-900">កាយ</th>
+                                        <th class="bg-purple-100 text-purple-900">បំណិន</th>
+                                        <th rowspan="2" class="bg-gray-200 w-16 font-bold">សរុប</th>
+                                        <th rowspan="2" class="bg-gray-200 w-16 font-bold text-blue-700">មធ្យម</th>
+                                    </tr>
+                                    <tr class="text-[10px]">
+                                        <th class="bg-blue-50">ស្ដាប់</th><th class="bg-blue-50">សរសេរ</th><th class="bg-blue-50">អាន</th><th class="bg-blue-50">តែង</th>
+                                        <th class="bg-green-50">ចំនួន</th><th class="bg-green-50">រង្វាស់</th><th class="bg-green-50">ធរណី</th><th class="bg-green-50">ពីជ</th><th class="bg-green-50">ស្ថិតិ</th>
+                                        <th class="bg-yellow-50">រូប</th><th class="bg-yellow-50">គីមី</th><th class="bg-yellow-50">ជីវ</th><th class="bg-yellow-50">ផែនដី</th>
+                                        <th class="bg-orange-50">ពលរដ្ឋ</th><th class="bg-orange-50">ភូមិ</th><th class="bg-orange-50">ប្រវត្តិ</th>
+                                        <th class="bg-red-50">កាយ</th><th class="bg-purple-50">សិល្បៈ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detailed-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end no-print">
+                            <button onclick="saveDetailedScores()" id="btn-save-scores" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-700 transition font-bold flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> រក្សាទុកពិន្ទុ
+                            </button>
+                        </div>
+
+                        <div class="mt-6 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-1/3"></div>
+                            <div class="w-1/3 text-center"> <br> <br> <br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. MONTHLY RESULTS VIEW -->
+                <div id="view-monthly-results" class="hidden space-y-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 print-area">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-left w-1/3 leading-normal">
+                                <p class="font-moul text-[11px] text-gray-800">ការិយាល័យអប់រំ យុវជន និងកីឡា</p>
+                                <p class="font-moul text-[12px] text-teal-800 mt-1">សាលាបឋមសិក្សាខ្សុំ</p>
+                            </div>
+                            <div class="text-center w-1/3 leading-normal">
+                                <p class="font-moul text-[13px] text-gray-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                                <p class="font-moul text-[13px] text-gray-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                            </div>
+                            <div class="w-1/3 text-right no-print flex justify-end gap-2">
+                                <select id="result-month-selector" class="border border-gray-300 rounded p-1 text-sm font-bold text-teal-700" onchange="renderMonthlyResults()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <button onclick="exportTableToExcel('monthly-results-table', 'លទ្ធផលប្រឡង')" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700 ml-1"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-black"><i class="fa-solid fa-print mr-1"></i> បោះពុម្ព</button>
+                            </div>
+                        </div>
+                        <div class="text-center mb-6">
+                            <h2 class="font-moul text-xl text-teal-800">តារាងសង្ខេបលទ្ធផលប្រឡង</h2>
+                            <p class="text-sm text-gray-600 font-semibold mt-1">ឆ្នាំសិក្សា ២០២៦-២០២៧</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="monthly-results-table" class="w-full text-sm border-collapse border border-gray-400 text-center">
+                                <thead class="bg-gray-100 text-gray-800 font-bold border-b-2 border-gray-400">
+                                    <tr>
+                                        <th class="border border-gray-400 p-2 w-12">ល.រ</th>
+                                        <th class="border border-gray-400 p-2 w-28">អត្តលេខ</th>
+                                        <th class="border border-gray-400 p-2 text-left">គោត្តនាម និងនាម</th>
+                                        <th class="border border-gray-400 p-2 w-16">ភេទ</th>
+                                        <th class="border border-gray-400 p-2 w-24">ពិន្ទុសរុប</th>
+                                        <th class="border border-gray-400 p-2 w-24 text-blue-700">មធ្យមភាគ</th>
+                                        <th class="border border-gray-400 p-2 w-24 text-yellow-700">ចំណាត់ថ្នាក់</th>
+                                        <th class="border border-gray-400 p-2 w-24">និទ្ទេស</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-results-tbody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-8 flex justify-between text-xs leading-loose pt-2 w-full">
+                            <div class="w-1/3">
+                                <p>- បញ្ឈប់បញ្ជីត្រឹមសិស្សចំនួន <span id="sum-total" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់ ស្រី <span id="sum-female" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់</p>
+                                <p>- សិស្សជាប់មធ្យមភាគ <span id="sum-pass" class="font-bold text-green-700 border-b border-dotted px-2 border-black">...</span> នាក់ ស្រី <span id="sum-pass-f" class="font-bold border-b border-dotted px-2 border-black">...</span> នាក់</p>
+                            </div>
+                            <div class="w-1/3 text-center"> <br>
+                                <p class="mb-14 font-bold text-xs">បានឃើញ និងឯកភាព<br><span class="font-moul text-[11px] font-normal">នាយិកាសាលា</span></p>
+                                <p class="text-gray-400">.......................................</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="italic">ថ្ងៃ........................ខែ........................ឆ្នាំ........................</p>
+                                <p class="italic mb-4">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="mb-14 font-medium font-bold text-xs">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul text-xs">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. LEADERBOARD VIEW -->
+                <div id="view-leaderboard" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-gray-800">តារាងចំណាត់ថ្នាក់សិស្ស</h2>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700">ជ្រើសរើស៖</span>
+                                <select id="leaderboard-filter" class="border rounded p-1.5 text-xs font-bold text-blue-700 bg-blue-50" onchange="renderLeaderboard()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center">ចំណាត់ថ្នាក់</th>
+                                        <th class="px-6 py-4">អត្តលេខ</th>
+                                        <th class="px-6 py-4">ឈ្មោះសិស្ស</th>
+                                        <th class="px-6 py-4 text-center">ភេទ</th>
+                                        <th class="px-6 py-4 text-center text-blue-700">មធ្យមភាគ</th>
+                                        <th class="px-6 py-4 text-center">និទ្ទេស</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. HONOR ROLL VIEW -->
+                <div id="view-honor-roll" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 print-area">
+                        <div class="flex justify-between items-center mb-6 no-print">
+                            <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-medal text-yellow-500 mr-2"></i>តារាងកិត្តិយស (Top 5)</h2>
+                            <div class="flex gap-3">
+                                <select id="honor-month-selector" class="border border-gray-300 rounded p-1 text-sm bg-gray-50 font-semibold" onchange="renderHonorRoll()">
+                                    <optgroup label="ប្រចាំខែ">
+                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    </optgroup>
+                                    <optgroup label="ប្រចាំឆមាស">
+                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    </optgroup>
+                                </select>
+                                <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-1.5 rounded text-sm font-semibold hover:bg-black">
+                                    <i class="fa-solid fa-print mr-1"></i> បោះពុម្ព
+                                </button>
+                            </div>
+                        </div>
+                        <div id="honor-roll-container" class="grid grid-cols-1 md:grid-cols-5 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- 8. STUDENT REPORT VIEW -->
+                <div id="view-student" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="mb-6 border-b pb-4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900">ជ្រើសរើសសិស្សដើម្បីមើលរបាយការណ៍វិវត្តន៍៖</label>
+                            <select id="profile-student-select" class="w-full md:w-96 bg-gray-50 border border-gray-300 rounded-lg p-2.5 font-bold text-blue-700" onchange="renderStudentProfile()">
+                                <option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>
+                            </select>
+                        </div>
+                        <div id="student-empty-state" class="text-center py-12 text-gray-400">
+                            <i class="fa-solid fa-chart-line text-4xl mb-3"></i>
+                            <p>សូមជ្រើសរើសឈ្មោះសិស្សពីបញ្ជីខាងលើ ដើម្បីមើលការវិវត្ត</p>
+                        </div>
+                        <div id="student-profile-area" class="hidden pt-2 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="bg-gray-50 rounded-xl p-6 flex flex-col items-center text-center border border-gray-100 shadow-inner">
+                                <div id="student-avatar" class="w-20 h-20 rounded-full text-white text-3xl font-bold mb-3 flex items-center justify-center shadow-md"></div>
+                                <h3 id="profile-name" class="text-xl font-bold mb-1 text-gray-800"></h3>
+                                <p id="profile-id-gender" class="text-gray-500 mb-6 bg-white px-3 py-1 rounded-full text-xs border"></p>
+                                <div class="w-full space-y-2 text-sm">
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>ពិន្ទុសរុបចុងក្រោយ</span><span id="prof-total" class="font-bold text-gray-800"></span></div>
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>មធ្យមភាគ</span><span id="prof-avg" class="font-bold text-blue-700"></span></div>
+                                    <div class="flex justify-between bg-white p-2.5 rounded shadow-sm"><span>ចំណាត់ថ្នាក់</span><span id="prof-rank" class="font-bold text-yellow-600"></span></div>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <h3 class="font-bold mb-4 text-gray-800"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i> ក្រាហ្វិកការវិវត្តមធ្យមភាគតាមខែ</h3>
+                                <div class="bg-white border rounded-xl p-4 h-[300px] shadow-sm">
+                                    <canvas id="progressChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. TRACKING BOOK VIEW -->
+                <div id="view-tracking-book" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 no-print">
+                        <label class="block mb-2 text-sm font-medium text-gray-900">ជ្រើសរើសសិស្សដើម្បីបង្កើតសៀវភៅតាមដាន៖</label>
+                        <div class="flex gap-4">
+                            <select id="tracking-student-select" class="w-full md:w-96 bg-gray-50 border border-gray-300 rounded-lg p-2 font-bold text-blue-700">
+                                <option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>
+                            </select>
+                            <button onclick="generateTrackingBook()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold text-sm">
+                                បង្កើតរបាយការណ៍
+                            </button>
+                            <button onclick="window.print()" class="bg-gray-800 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-black">
+                                <i class="fa-solid fa-print mr-1"></i> Print PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="printable-report" class="hidden bg-white p-8 border border-gray-300 max-w-4xl mx-auto shadow-sm print-area">
+                        <div class="text-center mb-6 border-b-2 border-gray-800 pb-4">
+                            <h1 class="font-moul text-xl mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                            <h2 class="font-moul text-sm">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                            <br>
+                            <h2 class="font-moul text-lg text-blue-800 mb-1">សៀវភៅតាមដានលទ្ធផលសិក្សាសិស្ស</h2>
+                            <p class="font-bold text-sm">សាលាបឋមសិក្សា ខ្សុំ - ឆ្នាំសិក្សា ២០២៦-២០២៧</p>
+                        </div>
+                        
+                        <div class="flex justify-between mb-6 text-xs">
+                            <div>
+                                <p class="mb-1"><strong>អត្តលេខ៖</strong> <span id="tb-id">...</span></p>
+                                <p class="mb-1"><strong>គោត្តនាម និងនាម៖</strong> <span id="tb-name" class="font-bold text-sm text-blue-700">...</span></p>
+                                <p class="mb-1"><strong>ភេទ៖</strong> <span id="tb-gender">...</span></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="mb-1"><strong>ថ្នាក់ទី៖</strong> ២ «ខ»</p>
+                                <p class="mb-1"><strong>គ្រូបន្ទុកថ្នាក់៖</strong> ហឿន វិផា</p>
+                            </div>
+                        </div>
+
+                        <table class="w-full text-xs border-collapse border border-gray-800 text-center mb-8">
+                            <thead class="bg-gray-100 font-bold">
+                                <tr>
+                                    <th class="border border-gray-800 p-2">ការវាយតម្លៃ</th>
+                                    <th class="border border-gray-800 p-2">ពិន្ទុសរុប</th>
+                                    <th class="border border-gray-800 p-2">មធ្យមភាគ</th>
+                                    <th class="border border-gray-800 p-2">ចំណាត់ថ្នាក់</th>
+                                    <th class="border border-gray-800 p-2">និទ្ទេស</th>
+                                    <th class="border border-gray-800 p-2 w-32">ហត្ថលេខាអាណាព្យាបាល</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-scores-body"></tbody>
+                        </table>
+
+                        <div class="flex justify-between mt-12 text-xs">
+                            <div class="text-center w-40">
+                                <p class="mb-12">បានឃើញ និងឯកភាព<br>មាតាបិតា ឬអាណាព្យាបាល</p>
+                                <p>.......................................</p>
+                            </div>
+                            <div class="text-center w-40">
+                                <p class="mb-12">ថ្ងៃទី........ខែ........ឆ្នាំ........<br>គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-bold font-moul">ហឿន វិផា</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"><i class="fa-solid fa-check-circle mr-2"></i> <span id="toast-msg">ជោគជ័យ!</span></div>
+
+    <!-- Link to Custom Script -->
+    <script src="script.js"></script>
+</body>
+</html>
