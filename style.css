@@ -1,41 +1,94 @@
-/* style.css - ឯកសារសម្រាប់រចនាម៉ូតបន្ថែម */
+/* =========================================
+   ការកំណត់ទូទៅ (Global Styles & Reset)
+   ========================================= */
+* {
+    box-sizing: border-box;
+}
+
 body { 
     font-family: 'Kantumruy Pro', sans-serif; 
     background-color: #f3f4f6; 
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
+
 .font-moul { 
     font-family: 'Moul', serif; 
 }
-.nav-active { 
-    background-color: #2563eb; 
-    color: white; 
-    border-left: 4px solid #60a5fa; 
-}
-.nav-item { 
-    transition: all 0.3s ease; 
-}
-.nav-item:hover:not(.nav-active) { 
-    background-color: #e5e7eb; 
-    color: #1e3a8a; 
+
+.font-siemreap {
+    font-family: 'Kantumruy Pro', sans-serif; 
 }
 
-.grade-table th, .grade-table td, .report-table th, .report-table td { 
+/* =========================================
+   Responsive Sidebar & Layout (សម្រាប់ទូរសព្ទ និង PC)
+   ========================================= */
+#main-app {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+aside {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* សម្រាប់អេក្រង់កុំព្យូទ័រ (Desktop / PC) ឱ្យបង្ហាញ Sidebar ធម្មតាជាប់ជានិច្ច */
+@media (min-width: 769px) {
+    aside {
+        transform: translateX(0) !important;
+    }
+}
+
+/* សម្រាប់អេក្រង់ទូរសព្ទ និងថបប្លេត (Mobile & Tablet) */
+@media (max-width: 768px) {
+    aside {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        z-index: 100;
+        transform: translateX(-100%); /* លាក់ Sidebar ចេញពីអេក្រង់ដំបូងលើទូរសព្ទ */
+    }
+    
+    aside.mobile-open {
+        transform: translateX(0); /* បង្ហាញពេលចុច Menu Icon */
+    }
+
+    main {
+        width: 100% !important;
+    }
+}
+
+/* =========================================
+   តារាង (Tables & Inputs)
+   ========================================= */
+.grade-table th, .grade-table td, 
+.report-table th, .report-table td { 
     border: 1px solid #d1d5db; 
-    padding: 6px; 
+    padding: 8px 6px; 
     text-align: center; 
     font-size: 13px; 
+    white-space: nowrap; /* ការពារអក្សរផ្ដាច់បន្ទាត់ខុសបច្ចេកទេស */
 }
+
 .grade-table th, .report-table th { 
     background-color: #f8fafc; 
     font-weight: 600; 
     color: #1e293b; 
 }
+
+/* ប្រអប់បញ្ចូលពិន្ទុឱ្យងាយស្រួលចុចលើទូរសព្ទ */
 .grade-input { 
-    width: 48px; 
+    width: 50px; 
+    height: 32px;
     text-align: center; 
     border: 1px solid #cbd5e1; 
-    border-radius: 4px; 
+    border-radius: 6px; 
     padding: 2px; 
+    font-size: 14px;
 }
 .grade-input:focus { 
     outline: none; 
@@ -43,30 +96,36 @@ body {
     box-shadow: 0 0 0 2px #bfdbfe; 
 }
 
-/* សម្រាប់បញ្ចូលវត្តមានក្នុងតារាងធំ */
+/* =========================================
+   តារាងវត្តមានប្រចាំខែ (Attendance Report)
+   ========================================= */
 .att-input { 
-    width: 100%; 
-    min-width: 20px; 
+    width: 32px; 
+    height: 32px;
     text-align: center; 
     border: none; 
     background: transparent; 
-    font-size: 12px; 
+    font-size: 13px; 
     font-weight: bold; 
     text-transform: uppercase; 
 }
 .att-input:focus { 
-    outline: 1px solid #3b82f6; 
+    outline: 2px solid #3b82f6; 
     background-color: white; 
+    border-radius: 4px;
 }
+
 .weekend-col { 
     background-color: #e5e7eb !important; 
     color: #9ca3af; 
 }
 
-/* Scrollbar Customization */
+/* =========================================
+   របាររមូរ (Custom Scrollbar for Mobile Touch)
+   ========================================= */
 ::-webkit-scrollbar { 
-    width: 6px; 
-    height: 6px; 
+    width: 5px; 
+    height: 5px; 
 }
 ::-webkit-scrollbar-track { 
     background: #f1f1f1; 
@@ -76,27 +135,29 @@ body {
     border-radius: 4px; 
 }
 
-/* Toast Notification Styles */
+/* =========================================
+   ការជូនដំណឹង (Toast Notification)
+   ========================================= */
 #toast {
     visibility: hidden; 
-    min-width: 250px; 
+    min-width: 260px; 
     background-color: #10B981; 
     color: #fff;
     text-align: center; 
-    border-radius: 8px; 
-    padding: 12px; 
+    border-radius: 12px; 
+    padding: 14px; 
     position: fixed; 
-    z-index: 3000; 
+    z-index: 4000; 
     left: 50%; 
     transform: translateX(-50%); 
     bottom: 30px; 
-    font-size: 15px; 
-    font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 14px; 
+    font-weight: 600;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 #toast.show { 
     visibility: visible; 
-    animation: fadein 0.5s, fadeout 0.5s 2.5s; 
+    animation: fadein 0.4s, fadeout 0.4s 2.6s; 
 }
 @keyframes fadein { 
     from {bottom: 0; opacity: 0;} 
@@ -107,22 +168,34 @@ body {
     to {bottom: 0; opacity: 0;} 
 }
 
-/* Login Screen Styles */
-#login-screen {
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    z-index: 2000;
+/* =========================================
+   ផ្ទាំងចូលប្រព័ន្ធ (Login & Auth Screens)
+   ========================================= */
+#auth-screen {
+    padding: 1rem;
 }
 
-/* Print Specific Styles */
+#login-container, #register-container {
+    max-width: 100%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    #login-container, #register-container {
+        width: 400px;
+    }
+}
+
+/* =========================================
+   ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles)
+   ========================================= */
 @media print {
     body { background: white !important; }
-    aside, header, .no-print, #login-screen, #toast, .modal-backdrop { display: none !important; }
+    
+    aside, header, .no-print, #auth-screen, #toast, .modal-backdrop { 
+        display: none !important; 
+    }
+    
     main { 
         overflow: visible !important; 
         height: auto !important; 
@@ -131,19 +204,31 @@ body {
         padding: 0 !important; 
         background: white !important; 
     }
+    
     .print-area { 
         display: block !important; 
         border: none !important; 
         box-shadow: none !important; 
         width: 100% !important; 
         padding: 0 !important; 
-        margin-top: -20px; 
+        margin-top: -10px; 
     }
-    .grade-table th, .grade-table td, .report-table th, .report-table td { 
+    
+    .grade-table th, .grade-table td, 
+    .report-table th, .report-table td { 
         border-color: #333 !important; 
-        padding: 4px !important; 
-        font-size: 12px !important; 
+        padding: 3px !important; 
+        font-size: 11px !important; 
     }
-    .grade-input { border: none !important; background: transparent !important; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    
+    .grade-input { 
+        border: none !important; 
+        background: transparent !important; 
+        height: auto !important;
+    }
+    
+    * { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+    }
 }
