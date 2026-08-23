@@ -695,15 +695,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbz8ETGYL-SoieMa2XQ2CSWTPVLKuelcR6BgAfObFNLQPPA79Uz0GNnqQsYtqn4Afz-hXA/exec"; 
-    
-        fetch(url, {
-            method: "POST",
-            body: JSON.stringify({ name: "Minea", score: 95 }),
-            headers: { "Content-Type": "application/json" }
-        })
-.then(response => response.json())
-.then(data => console.log("Success:", data))
-.catch(error => console.error("Error:", error));
+        
         let db = []; 
         let isLoggedIn = false;
         let dbAttendance = {}; 
@@ -1464,37 +1456,5 @@
             }
         }
     </script>
-    <!-- ឧទាហរណ៍ទម្រង់ Form សាមញ្ញក្នុង HTML -->
-<form id="myForm">
-    <input type="text" id="name" placeholder="បញ្ចូលឈ្មោះ" required>
-    <input type="number" id="score" placeholder="បញ្ចូលពិន្ទុ" required>
-    <button type="submit">បញ្ជូនទិន្នន័យ</button>
-</form>
-
-<script>
-const scriptURL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // ជំនួសដោយ URL របស់អ្នក
-
-const form = document.getElementById('myForm');
-form.addEventListener('submit', e => {
-    e.preventDefault();
-    
-    const formData = {
-        name: document.getElementById('name').value,
-        score: document.getElementById('score').value
-    };
-
-    fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "text/plain;charset=utf-8" } // ប្រើ text/plain ដើម្បីការពារបញ្ហា CORS ជាមួយ Google Apps Script
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert('ទិន្នន័យបានបញ្ជូនជោគជ័យ!');
-        form.reset();
-    })
-    .catch(error => console.error('Error!', error.message));
-});
-</script>
 </body>
 </html>
