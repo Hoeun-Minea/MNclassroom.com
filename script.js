@@ -1,7 +1,7 @@
-// script.js - កូដពេញលេញ និងត្រឹមត្រូវសម្រាប់ការគ្រប់គ្រងសាលារៀន
+// script.js - កូដពេញលេញ
 
 // TODO: ដាក់ URL ដែលបាន Deploy ថ្មី
-const API_URL = "https://script.google.com/macros/s/AKfycbzuQdJB8E5ebAlDIV91xFjaFJOACPYAg1ZzmhDnE2VkW87P-rDRB4DYw4WcDbE-RJGvPQ/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwiWIYRrp_AHW8wJLmBdembQZyxlxonFGxaf0YoDGhRUuHua66tXNe7HWYHy_PZoRgrrg/exec"; 
 
 let db = []; 
 let currentClassDb = []; 
@@ -13,13 +13,69 @@ let loggedInUsername = "";
 let dbAttendance = {}; 
 let sysSettings = {}; 
 
-const monthsList = ['dec', 'jan', 'feb', 'mar', 'sem1', 'sem2'];
+// អាប់ដេតខែថ្មី និងលទ្ធផលឆមាស
+const monthsList = ['dec', 'jan', 'feb', 'mar', 'sem1', 'result_sem1', 'may', 'jun', 'jul', 'aug', 'sem2', 'result_sem2'];
 const monthNamesKh = {
-    'dec': 'ខែ ធ្នូ', 'jan': 'ខែ មករា', 'feb': 'ខែ កុម្ភៈ', 'mar': 'ខែ មីនា',
-    'sem1': 'ប្រឡងឆមាសទី១', 'sem2': 'ប្រឡងឆមាសទី២'
+    'dec': 'ខែ ធ្នូ', 'jan': 'ខែ មករា', 'feb': 'ខែ កុម្ភៈ', 'mar': 'ខែ មីនា', 'sem1': 'ប្រឡងឆមាសទី១', 'result_sem1': 'លទ្ធផលឆមាសទី១',
+    'may': 'ខែ ឧសភា', 'jun': 'ខែ មិថុនា', 'jul': 'ខែ កក្កដា', 'aug': 'ខែ សីហា', 'sem2': 'ប្រឡងឆមាសទី២', 'result_sem2': 'លទ្ធផលឆមាសទី២'
 };
 let myChart = null;
 let dashChart = null; 
+
+// ==========================================
+// រូបមន្តគណនាលទ្ធផលឆមាសស្វ័យប្រវត្តិ
+// ==========================================
+function getGrade(avg) {
+    if(avg >= 8) return "ល្អ";
+    if(avg >= 6.5) return "ល្អបង្គួរ";
+    if(avg >= 5) return "មធ្យម";
+    if(avg > 0) return "ខ្សោយ";
+    return "";
+}
+
+function calculateSemesterResults() {
+    currentClassDb.forEach(s => {
+        // លទ្ធផលឆមាសទី១
+        let s1Sum = (s.scores['dec']?.avg||0) + (s.scores['jan']?.avg||0) + (s.scores['feb']?.avg||0) + (s.scores['mar']?.avg||0);
+        let s1MonthAvg = s1Sum / 4; // ចែកនឹង ៤ ជានិច្ចតាមរូបមន្ត
+        let s1Exam = s.scores['sem1']?.avg||0;
+        
+        if (s1Sum > 0 || s1Exam > 0) {
+            let s1Final = (s1MonthAvg + s1Exam) / 2;
+            s.scores['result_sem1'] = { avg: parseFloat(s1Final.toFixed(2)), total: "-", rank: 0, grade: getGrade(s1Final) };
+        } else {
+            s.scores['result_sem1'] = { avg: 0, total: 0, rank: 0, grade: "" };
+        }
+
+        // លទ្ធផលឆមាសទី២
+        let s2Sum = (s.scores['may']?.avg||0) + (s.scores['jun']?.avg||0) + (s.scores['jul']?.avg||0) + (s.scores['aug']?.avg||0);
+        let s2MonthAvg = s2Sum / 4;
+        let s2Exam = s.scores['sem2']?.avg||0;
+        
+        if (s2Sum > 0 || s2Exam > 0) {
+            let s2Final = (s2MonthAvg + s2Exam) / 2;
+            s.scores['result_sem2'] = { avg: parseFloat(s2Final.toFixed(2)), total: "-", rank: 0, grade: getGrade(s2Final) };
+        } else {
+            s.scores['result_sem2'] = { avg: 0, total: 0, rank: 0, grade: "" };
+        }
+    });
+
+    // ចំណាត់ថ្នាក់លទ្ធផលឆមាសទី១
+    let sortedS1 = [...currentClassDb].filter(s => s.scores['result_sem1'].avg > 0).sort((a,b) => b.scores['result_sem1'].avg - a.scores['result_sem1'].avg);
+    let currRank1 = 1;
+    sortedS1.forEach((s, idx) => {
+        if(idx > 0 && s.scores['result_sem1'].avg < sortedS1[idx-1].scores['result_sem1'].avg) currRank1 = idx + 1;
+        s.scores['result_sem1'].rank = currRank1;
+    });
+
+    // ចំណាត់ថ្នាក់លទ្ធផលឆមាសទី២
+    let sortedS2 = [...currentClassDb].filter(s => s.scores['result_sem2'].avg > 0).sort((a,b) => b.scores['result_sem2'].avg - a.scores['result_sem2'].avg);
+    let currRank2 = 1;
+    sortedS2.forEach((s, idx) => {
+        if(idx > 0 && s.scores['result_sem2'].avg < sortedS2[idx-1].scores['result_sem2'].avg) currRank2 = idx + 1;
+        s.scores['result_sem2'].rank = currRank2;
+    });
+}
 
 // មុខងារ Toast 
 function showToast(msg) {
@@ -94,7 +150,6 @@ async function handleLogin(e) {
             document.getElementById('user-avatar').innerText = loggedInUser.charAt(0);
             document.querySelectorAll('.sys-teacher').forEach(el => el.innerText = loggedInUser);
             
-            // កំណត់សិទ្ធិ Admin ឬ គ្រូធម្មតា
             if(loggedInUsername === 'admin') {
                 document.getElementById('class-selector-container').classList.remove('hidden');
                 document.getElementById('nav-settings-label').classList.remove('hidden');
@@ -150,16 +205,9 @@ function switchTab(tabId) {
     if(selectedNav) selectedNav.classList.add('nav-active');
 
     const titles = { 
-        'dashboard': 'ផ្ទាំងសង្ខេបរួម', 
-        'manage-students': 'បញ្ជីឈ្មោះសិស្ស', 
-        'attendance-report': 'របាយការណ៍វត្តមាន', 
-        'detailed-sheet': 'បញ្ចូលពិន្ទុ', 
-        'monthly-results': 'លទ្ធផលប្រឡងផ្លូវការ', 
-        'leaderboard': 'តារាងចំណាត់ថ្នាក់', 
-        'honor-roll': 'តារាងកិត្តិយស', 
-        'student': 'ការវិវត្តសិស្ស', 
-        'tracking-book': 'សៀវភៅតាមដាន', 
-        'settings': 'ការកំណត់ប្រព័ន្ធ'
+        'dashboard': 'ផ្ទាំងសង្ខេបរួម', 'manage-students': 'បញ្ជីឈ្មោះសិស្ស', 'attendance-report': 'របាយការណ៍វត្តមាន', 
+        'detailed-sheet': 'បញ្ចូលពិន្ទុ', 'monthly-results': 'លទ្ធផលប្រឡងផ្លូវការ', 'leaderboard': 'តារាងចំណាត់ថ្នាក់', 
+        'honor-roll': 'តារាងកិត្តិយស', 'student': 'ការវិវត្តសិស្ស', 'tracking-book': 'សៀវភៅតាមដាន', 'settings': 'ការកំណត់ប្រព័ន្ធ'
     };
     
     const pageTitleEl = document.getElementById('page-title');
@@ -178,18 +226,26 @@ function switchTab(tabId) {
     }
 }
 
-// មុខងារបិទបើក Menu លើទូរសព្ទដៃ
 function toggleMobileSidebar() {
-    const aside = document.querySelector('aside');
-    aside.classList.toggle('mobile-open');
+    const aside = document.getElementById('main-sidebar') || document.querySelector('aside');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (aside.classList.contains('mobile-open')) {
+        aside.classList.remove('mobile-open');
+        if(overlay) overlay.classList.add('hidden');
+    } else {
+        aside.classList.add('mobile-open');
+        if(overlay) overlay.classList.remove('hidden');
+    }
 }
 
 const originalSwitchTab = switchTab;
 switchTab = function(tabId) {
     originalSwitchTab(tabId);
-    const aside = document.querySelector('aside');
+    const aside = document.getElementById('main-sidebar') || document.querySelector('aside');
+    const overlay = document.getElementById('sidebar-overlay');
     if(aside && aside.classList.contains('mobile-open')) {
         aside.classList.remove('mobile-open');
+        if(overlay) overlay.classList.add('hidden');
     }
 };
 
@@ -198,13 +254,12 @@ function handleClassChange() {
     let room = document.getElementById('filter-room').value;
     currentClassName = level + room; 
     
-    document.querySelectorAll('.display-current-class').forEach(el => {
-        el.innerText = currentClassName;
-    });
+    document.querySelectorAll('.display-current-class').forEach(el => el.innerText = currentClassName);
     document.getElementById('header-class-badge').innerText = "ថ្នាក់ទី " + currentClassName;
     
     currentClassDb = db.filter(s => s.class_name === currentClassName);
     
+    calculateSemesterResults(); // គណនាលទ្ធផល
     updateAllViews();
     fetchAttendanceReport();
 }
@@ -230,10 +285,9 @@ async function fetchStudents() {
         
         db = data.students.map(s => {
             let studentData = { 
-                id: s.id.toString(), name: s.name, gender: s.gender, 
-                dob: s.dob || '', pob: s.pob || '', father: s.father || '', mother: s.mother || '', 
-                class_name: s.class_name || "២ខ", 
-                scores: s.scores || {} 
+                id: s.id.toString(), name: s.name, gender: s.gender, dob: s.dob || '', 
+                pob: s.pob || '', father: s.father || '', mother: s.mother || '', 
+                class_name: s.class_name || "២ខ", scores: s.scores || {} 
             };
             monthsList.forEach(m => {
                 if(!studentData.scores[m]) {
@@ -245,6 +299,7 @@ async function fetchStudents() {
         });
         
         currentClassDb = db.filter(s => s.class_name === currentClassName);
+        calculateSemesterResults(); // គណនាលទ្ធផល
         updateAllViews();
         
         let now = new Date();
@@ -256,19 +311,15 @@ async function fetchStudents() {
     } catch (error) { showToast("បរាជ័យក្នុងការភ្ជាប់ទៅទិន្នន័យ!"); }
 }
 
-// Manage Students (Add, Edit, Delete)
+// Manage Students
 async function addStudent(e) {
     e.preventDefault();
     const payload = {
         action: "add_student",
-        id: document.getElementById('new-id').value.trim(),
-        name: document.getElementById('new-name').value.trim(),
-        gender: document.getElementById('new-gender').value,
-        dob: document.getElementById('new-dob').value.trim(),
-        pob: document.getElementById('new-pob').value.trim(),
-        father: document.getElementById('new-father').value.trim(),
-        mother: document.getElementById('new-mother').value.trim(),
-        class_name: currentClassName
+        id: document.getElementById('new-id').value.trim(), name: document.getElementById('new-name').value.trim(),
+        gender: document.getElementById('new-gender').value, dob: document.getElementById('new-dob').value.trim(),
+        pob: document.getElementById('new-pob').value.trim(), father: document.getElementById('new-father').value.trim(),
+        mother: document.getElementById('new-mother').value.trim(), class_name: currentClassName
     };
 
     if(currentClassDb.find(s => s.id === payload.id)) return alert("អត្តលេខនេះមានរួចហើយក្នុងថ្នាក់នេះ!");
@@ -286,6 +337,7 @@ async function addStudent(e) {
             db.push(payload);
             currentClassDb.push(payload);
             document.getElementById('add-student-form').reset();
+            calculateSemesterResults();
             updateAllViews();
             showToast("បានបន្ថែមសិស្សថ្មី!");
         } else { showToast(result.message); }
@@ -295,51 +347,33 @@ async function addStudent(e) {
 function openEditStudent(id) {
     const s = currentClassDb.find(x => x.id === id);
     if(!s) return;
-    document.getElementById('edit-old-id').value = s.id;
-    document.getElementById('edit-id').value = s.id;
-    document.getElementById('edit-name').value = s.name;
-    document.getElementById('edit-gender').value = s.gender;
-    document.getElementById('edit-dob').value = s.dob || '';
-    document.getElementById('edit-pob').value = s.pob || '';
-    document.getElementById('edit-father').value = s.father || '';
-    document.getElementById('edit-mother').value = s.mother || '';
+    document.getElementById('edit-old-id').value = s.id; document.getElementById('edit-id').value = s.id;
+    document.getElementById('edit-name').value = s.name; document.getElementById('edit-gender').value = s.gender;
+    document.getElementById('edit-dob').value = s.dob || ''; document.getElementById('edit-pob').value = s.pob || '';
+    document.getElementById('edit-father').value = s.father || ''; document.getElementById('edit-mother').value = s.mother || '';
     document.getElementById('edit-class').value = s.class_name || currentClassName;
     
     let oldClassInput = document.getElementById('edit-old-class');
     if(!oldClassInput) {
-        oldClassInput = document.createElement('input');
-        oldClassInput.type = 'hidden';
-        oldClassInput.id = 'edit-old-class';
-        document.getElementById('edit-student-form').appendChild(oldClassInput);
+        oldClassInput = document.createElement('input'); oldClassInput.type = 'hidden';
+        oldClassInput.id = 'edit-old-class'; document.getElementById('edit-student-form').appendChild(oldClassInput);
     }
     oldClassInput.value = s.class_name;
-    
     document.getElementById('edit-modal').classList.remove('hidden');
 }
 
-function closeEditModal() {
-    document.getElementById('edit-modal').classList.add('hidden');
-}
+function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
 
 async function submitEditStudent(e) {
     e.preventDefault();
-    const oldId = document.getElementById('edit-old-id').value;
-    const oldClass = document.getElementById('edit-old-class').value;
-    const newId = document.getElementById('edit-id').value;
-    const newClass = document.getElementById('edit-class').value.trim();
+    const oldId = document.getElementById('edit-old-id').value; const oldClass = document.getElementById('edit-old-class').value;
+    const newId = document.getElementById('edit-id').value; const newClass = document.getElementById('edit-class').value.trim();
     
     const payload = {
-        action: "edit_student",
-        old_id: oldId,
-        old_class: oldClass,
-        id: newId,
-        name: document.getElementById('edit-name').value.trim(),
-        gender: document.getElementById('edit-gender').value,
-        dob: document.getElementById('edit-dob').value.trim(),
-        pob: document.getElementById('edit-pob').value.trim(),
-        father: document.getElementById('edit-father').value.trim(),
-        mother: document.getElementById('edit-mother').value.trim(),
-        class_name: newClass
+        action: "edit_student", old_id: oldId, old_class: oldClass, id: newId, class_name: newClass,
+        name: document.getElementById('edit-name').value.trim(), gender: document.getElementById('edit-gender').value,
+        dob: document.getElementById('edit-dob').value.trim(), pob: document.getElementById('edit-pob').value.trim(),
+        father: document.getElementById('edit-father').value.trim(), mother: document.getElementById('edit-mother').value.trim()
     };
 
     showToast("កំពុងកែប្រែទិន្នន័យ...");
@@ -348,11 +382,10 @@ async function submitEditStudent(e) {
         const result = await response.json();
         if(result.status === "success") {
             const masterIdx = db.findIndex(s => s.id === oldId && s.class_name === oldClass);
-            if(masterIdx !== -1) {
-                db[masterIdx] = { ...db[masterIdx], ...payload };
-            }
+            if(masterIdx !== -1) db[masterIdx] = { ...db[masterIdx], ...payload };
             currentClassDb = db.filter(s => s.class_name === currentClassName);
             document.getElementById('edit-modal').classList.add('hidden');
+            calculateSemesterResults();
             updateAllViews();
             showToast("បានកែប្រែព័ត៌មានសិស្សជោគជ័យ!");
         } else { showToast("កែប្រែមិនបានសម្រេច"); }
@@ -363,14 +396,12 @@ async function deleteStudent(id, name) {
     if(!confirm(`តើអ្នកពិតជាចង់លុបសិស្សឈ្មោះ "${name}" (អត្តលេខ: ${id}) មែនទេ?`)) return;
     showToast("កំពុងលុបទិន្នន័យ...");
     try {
-        const response = await fetch(API_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ action: "delete_student", id: id, class_name: currentClassName }) 
-        });
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "delete_student", id: id, class_name: currentClassName }) });
         const result = await response.json();
         if(result.status === "success") {
             db = db.filter(s => !(s.id === id && s.class_name === currentClassName));
             currentClassDb = currentClassDb.filter(s => s.id !== id);
+            calculateSemesterResults();
             updateAllViews();
             showToast("បានលុបសិស្សចេញពីបញ្ជី!");
         } else { showToast("មិនអាចលុបបានទេ"); }
@@ -406,9 +437,6 @@ function renderManageStudentsTable() {
     });
 }
 
-// ==========================================
-// Settings 
-// ==========================================
 function applySettingsToUI() {
     document.querySelectorAll('.sys-school').forEach(el => el.innerText = sysSettings.school_name || 'សាលាបឋមសិក្សា ខ្សុំ');
     document.querySelectorAll('.sys-year').forEach(el => el.innerText = sysSettings.academic_year || '២០២៦-២០២៧');
@@ -433,31 +461,21 @@ async function saveSettings(e) {
     try {
         const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
         const result = await response.json();
-        if(result.status === "success") {
-            sysSettings = payload.settings;
-            applySettingsToUI();
-            showToast("បានរក្សាទុកការកំណត់ជោគជ័យ!");
-        } else { showToast("មានបញ្ហា!"); }
+        if(result.status === "success") { sysSettings = payload.settings; applySettingsToUI(); showToast("ជោគជ័យ!"); } 
+        else { showToast("មានបញ្ហា!"); }
     } catch(err) { showToast("បរាជ័យក្នុងការភ្ជាប់!"); }
     finally { btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> រក្សាទុកការកំណត់'; }
 }
 
-// ==========================================
-// Attendance
-// ==========================================
-let currentDaysInMonth = 31; 
-let currentYear = new Date().getFullYear();
-let currentMonthNum = new Date().getMonth() + 1;
+let currentDaysInMonth = 31; let currentYear = new Date().getFullYear(); let currentMonthNum = new Date().getMonth() + 1;
 const khmerDays = ['អា.', 'ច.', 'អ.', 'ព.', 'ព្រ.', 'សុ.', 'ស.'];
-
 function getDaysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
 
 function handleDateChange() {
     const yyyyMm = document.getElementById('att-month-selector').value;
     if(yyyyMm) {
         const parts = yyyyMm.split('-');
-        currentYear = parseInt(parts[0]);
-        currentMonthNum = parseInt(parts[1]);
+        currentYear = parseInt(parts[0]); currentMonthNum = parseInt(parts[1]);
         currentDaysInMonth = getDaysInMonth(currentYear, currentMonthNum);
     }
     fetchAttendanceReport();
@@ -466,12 +484,10 @@ function handleDateChange() {
 async function fetchAttendanceReport() {
     const yyyyMm = document.getElementById('att-month-selector').value; 
     if(!yyyyMm) return;
-    showToast("កំពុងទាញយកទិន្នន័យវត្តមាន...");
     try {
         const response = await fetch(`${API_URL}?action=get_attendance&month=${yyyyMm}&class_name=${encodeURIComponent(currentClassName)}`);
         const result = await response.json();
-        if(result.status === "success" && result.data) dbAttendance = result.data;
-        else dbAttendance = {}; 
+        if(result.status === "success" && result.data) dbAttendance = result.data; else dbAttendance = {}; 
     } catch (err) { dbAttendance = {}; }
     renderAttendanceReport();
 }
@@ -484,7 +500,6 @@ function renderAttendanceReport() {
     
     if(!daysRow || !khmerDaysRow || !tbody) return;
     if(headerColspan) headerColspan.colSpan = currentDaysInMonth;
-    
     daysRow.innerHTML = ''; khmerDaysRow.innerHTML = '';
     
     for(let i=1; i<=currentDaysInMonth; i++) {
@@ -529,14 +544,11 @@ function calculateAttendance() {
         for(let i=1; i<=currentDaysInMonth; i++) {
             let input = row.querySelector(`.d${i}`);
             if(input && !input.disabled) {
-                let val = input.value.toUpperCase();
-                input.value = val; 
+                let val = input.value.toUpperCase(); input.value = val; 
                 if(val === 'V') v++; else if(val === 'A') a++; else if(val === 'L') l++;
             }
         }
-        row.querySelector('.tot-v').innerText = v;
-        row.querySelector('.tot-a').innerText = a;
-        row.querySelector('.tot-l').innerText = l;
+        row.querySelector('.tot-v').innerText = v; row.querySelector('.tot-a').innerText = a; row.querySelector('.tot-l').innerText = l;
     });
 }
 
@@ -562,17 +574,12 @@ async function saveMonthlyAttendance() {
     const btn = document.getElementById('btn-save-monthly-att');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងរក្សាទុក...';
     try {
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'save_monthly_attendance', month: yyyyMm, class_name: currentClassName, data: attData }) });
-        const result = await response.json();
-        if(result.status === "success") showToast(`រក្សាទុកវត្តមានថ្នាក់ ${currentClassName} បានជោគជ័យ!`);
-        else showToast("មានបញ្ហា");
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'save_monthly_attendance', month: yyyyMm, class_name: currentClassName, data: attData }) });
+        showToast(`ជោគជ័យ!`);
     } catch(e) { showToast("បរាជ័យក្នុងការភ្ជាប់ទៅ Server!"); } 
     finally { btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមាន'; }
 }
 
-// ==========================================
-// Scores & Results
-// ==========================================
 function loadDetailedSheet() {
     const m = document.getElementById('month-selector').value;
     const tbody = document.getElementById('detailed-tbody');
@@ -614,7 +621,7 @@ async function saveDetailedScores() {
     document.body.style.cursor = 'wait'; 
     try {
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "save_scores", month: m, class_name: currentClassName, scores: monthScoresData }) });
-        await fetchStudents(); 
+        await fetchStudents(); // វានឹងរត់ calculateSemesterResults() ស្វ័យប្រវត្តិ
         loadDetailedSheet(); 
         showToast(`ជោគជ័យ! ទិន្នន័យត្រូវបានគណនា និងរក្សាទុក។`);
     } catch (error) { showToast(`បរាជ័យក្នុងការរក្សាទុក`); } 
@@ -661,9 +668,6 @@ function renderMonthlyResults() {
     if(document.getElementById('result-month-title')) document.getElementById('result-month-title').innerText = monthNamesKh[m] || '';
 }
 
-// ==========================================
-// Dashboard & Rankings
-// ==========================================
 function renderDashboardStats() {
     document.getElementById('stat-total').innerHTML = `${currentClassDb.length}`;
     document.getElementById('stat-female').innerHTML = `${currentClassDb.filter(s => s.gender === 'ស').length}`;
@@ -796,7 +800,7 @@ function renderStudentProfile() {
     document.getElementById('profile-name').textContent = s.name;
     document.getElementById('profile-id-gender').textContent = `អត្តលេខ៖ ${s.id} | ភេទ៖ ${s.gender}`;
 
-    const m = 'sem1'; 
+    const m = 'result_sem1'; 
     const sc = s.scores[m] || {total:0, avg:0, rank:0, grade:""};
     document.getElementById('prof-total').textContent = sc.total || '-';
     document.getElementById('prof-avg').textContent = sc.avg || '-';
@@ -804,13 +808,19 @@ function renderStudentProfile() {
 
     const ctx = document.getElementById('progressChart').getContext('2d');
     if (myChart) myChart.destroy();
+    
     myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['ធ្នូ', 'មករា', 'កុម្ភៈ', 'មីនា', 'ឆមាស១', 'ឆមាស២'],
+            labels: ['ធ្នូ', 'មករា', 'កុម្ភៈ', 'មីនា', 'ឆ.១', 'ល.ឆ១', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'ឆ.២', 'ល.ឆ២'],
             datasets: [{
                 label: 'មធ្យមភាគការសិក្សា',
-                data: [ s.scores.dec?.avg || 0, s.scores.jan?.avg || 0, s.scores.feb?.avg || 0, s.scores.mar?.avg || 0, s.scores.sem1?.avg || 0, s.scores.sem2?.avg || 0 ],
+                data: [ 
+                    s.scores.dec?.avg||0, s.scores.jan?.avg||0, s.scores.feb?.avg||0, s.scores.mar?.avg||0, 
+                    s.scores.sem1?.avg||0, s.scores.result_sem1?.avg||0,
+                    s.scores.may?.avg||0, s.scores.jun?.avg||0, s.scores.jul?.avg||0, s.scores.aug?.avg||0, 
+                    s.scores.sem2?.avg||0, s.scores.result_sem2?.avg||0 
+                ],
                 borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, fill: true, tension: 0.3
             }]
         },
@@ -831,7 +841,8 @@ function generateTrackingBook() {
     monthsList.forEach(m => {
         const sc = s.scores[m];
         if(sc && sc.avg > 0) {
-            tbody.innerHTML += `<tr><td class="border border-gray-800 p-2 font-bold">${monthNamesKh[m] || m}</td><td class="border border-gray-800 p-2">${sc.total}</td><td class="border border-gray-800 p-2 font-bold text-blue-800">${sc.avg}</td><td class="border border-gray-800 p-2">${sc.rank}</td><td class="border border-gray-800 p-2">${sc.grade}</td><td class="border border-gray-800 p-2"></td></tr>`;
+            let rowClass = (m === 'result_sem1' || m === 'result_sem2') ? 'bg-blue-50 font-bold' : '';
+            tbody.innerHTML += `<tr class="${rowClass}"><td class="border border-gray-800 p-2 font-bold">${monthNamesKh[m] || m}</td><td class="border border-gray-800 p-2">${sc.total}</td><td class="border border-gray-800 p-2 font-bold text-blue-800">${sc.avg}</td><td class="border border-gray-800 p-2 text-red-600">${sc.rank}</td><td class="border border-gray-800 p-2 text-green-600">${sc.grade}</td><td class="border border-gray-800 p-2"></td></tr>`;
         }
     });
     if(tbody.innerHTML === '') tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-800 p-4 text-gray-400">មិនទាន់មានទិន្នន័យពិន្ទុឡើយ</td></tr>`;

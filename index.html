@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធគ្រប់គ្រងសាលារៀន</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -282,9 +281,10 @@
 
     <!-- MAIN APPLICATION -->
     <div id="main-app" class="flex w-full h-full hidden">
+        <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
         <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-white shadow-xl flex flex-col z-20 relative">
-            <div class="p-4 border-b border-gray-100 bg-blue-600 text-white">
+        <aside id="main-sidebar" class="w-64 bg-white shadow-xl flex flex-col z-50 relative">
+            <div class="p-4 border-b border-gray-100 bg-blue-600 text-white flex justify-between items-center">
                 <div class="text-center mb-3">
                     <i class="fa-solid fa-school text-3xl mb-2"></i>
                     <h2 class="font-moul text-sm leading-snug">ប្រព័ន្ធគ្រប់គ្រងសាលារៀន</h2>
@@ -599,13 +599,21 @@
                             <h2 class="font-moul text-xl text-blue-800 mb-2">បញ្ជីស្រង់ពិន្ទុថ្នាក់ទី <span class="display-current-class border-b-2 border-blue-400">២ខ</span></h2>
                             <div class="flex justify-center items-center gap-3 mt-4">
                                 <select id="month-selector" class="border border-gray-300 rounded-lg p-1.5 text-sm font-bold bg-white text-blue-700 outline-none focus:border-blue-500" onchange="loadDetailedSheet()">
-                                    <optgroup label="ប្រចាំខែ">
-                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
-                                    </optgroup>
-                                    <optgroup label="ប្រចាំឆមាស">
-                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
-                                    </optgroup>
-                                </select>
+    <optgroup label="ឆមាសទី១">
+        <option value="dec">ខែ ធ្នូ</option>
+        <option value="jan">ខែ មករា</option>
+        <option value="feb">ខែ កុម្ភៈ</option>
+        <option value="mar">ខែ មីនា</option>
+        <option value="sem1">ប្រឡងឆមាសទី១</option>
+    </optgroup>
+    <optgroup label="ឆមាសទី២">
+        <option value="may">ខែ ឧសភា</option>
+        <option value="jun">ខែ មិថុនា</option>
+        <option value="jul">ខែ កក្កដា</option>
+        <option value="aug">ខែ សីហា</option>
+        <option value="sem2">ប្រឡងឆមាសទី២</option>
+    </optgroup>
+</select>
                                 <span class="font-bold text-gray-700 text-sm border-l pl-3">ឆ្នាំសិក្សា <span class="sys-year text-blue-800">២០២៦-២០២៧</span></span>
                             </div>
                         </div>
@@ -677,11 +685,21 @@
                             </div>
                             <div class="w-1/3 text-right no-print flex justify-end gap-2">
                                 <select id="result-month-selector" class="border border-gray-300 rounded-lg p-1.5 text-sm font-bold text-teal-700 outline-none focus:border-teal-500" onchange="renderMonthlyResults()">
-                                    <optgroup label="ប្រចាំខែ">
-                                        <option value="dec">ខែ ធ្នូ</option><option value="jan">ខែ មករា</option><option value="feb">ខែ កុម្ភៈ</option><option value="mar">ខែ មីនា</option>
+                                    <optgroup label="ឆមាសទី១">
+                                        <option value="dec">ខែ ធ្នូ</option>
+                                        <option value="jan">ខែ មករា</option>
+                                        <option value="feb">ខែ កុម្ភៈ</option>
+                                        <option value="mar">ខែ មីនា</option>
+                                        <option value="sem1">ប្រឡងឆមាសទី១</option>
+                                        <option value="result_sem1" class="font-bold text-blue-600 bg-blue-50">លទ្ធផលឆមាសទី១</option>
                                     </optgroup>
-                                    <optgroup label="ប្រចាំឆមាស">
-                                        <option value="sem1">ឆមាសទី១</option><option value="sem2">ឆមាសទី២</option>
+                                    <optgroup label="ឆមាសទី២">
+                                        <option value="may">ខែ ឧសភា</option>
+                                        <option value="jun">ខែ មិថុនា</option>
+                                        <option value="jul">ខែ កក្កដា</option>
+                                        <option value="aug">ខែ សីហា</option>
+                                        <option value="sem2">ប្រឡងឆមាសទី២</option>
+                                        <option value="result_sem2" class="font-bold text-blue-600 bg-blue-50">លទ្ធផលឆមាសទី២</option>
                                     </optgroup>
                                 </select>
                                 <button onclick="exportTableToExcel('monthly-results-table', 'លទ្ធផលប្រឡង')" class="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition shadow-sm ml-1"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
