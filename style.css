@@ -273,4 +273,116 @@ aside {
     #monthly-results-container .grid {
         gap: 15px !important;
     }
+    /* រៀបចំតារាងចំណាត់ថ្នាក់ជា ២ ជួរ (Columns) */
+    .print-two-columns {
+        column-count: 2;
+        column-gap: 20px;
+        column-rule: 1px solid #ccc;
+        width: 100%;
+        display: block;
+    }
+
+    .print-two-columns table {
+        width: 100%;
+        break-inside: avoid; /* ការពារកុំឱ្យដាច់តារាងពាក់កណ្ដាលពេលឆ្លងជួរ */
+    }
+
+    /* សម្រាប់ Monthly Results យើងប្រើ Grid ក្នុង JS ហើយ តែបើចង់ច្បាស់អាចបន្ថែមនេះ */
+    #monthly-results-container .grid {
+        display: grid !important; 
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
+        gap: 15px !important;
+    }
+}
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap');
+
+body {
+    font-family: 'Kantumruy Pro', sans-serif;
+}
+
+.font-moul {
+    font-family: 'Moul', serif;
+}
+
+/* Toast Notification Style */
+#toast {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 5000;
+    right: 30px;
+    bottom: 30px;
+    font-size: 14px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+#toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+/* Table Input Styles */
+.grade-input, .att-input {
+    width: 45px;
+    text-align: center;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 4px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.grade-input:focus, .att-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.nav-active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    font-weight: bold;
+}
+
+/* Responsive Mobile Sidebar */
+@media (max-width: 768px) {
+    #main-sidebar {
+        position: fixed;
+        left: -260px;
+        transition: left 0.3s ease;
+        height: 100%;
+        z-index: 100;
+    }
+    #main-sidebar.mobile-open {
+        left: 0;
+    }
+}
+
+/* Print Friendly Configuration */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    body {
+        background-color: white !important;
+        overflow: visible !important;
+    }
+    #main-app {
+        height: auto !important;
+    }
 }
