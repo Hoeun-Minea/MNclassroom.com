@@ -721,98 +721,81 @@ async function saveDetailedScores() {
     finally { document.body.style.cursor = 'default'; }
 }
 
+// ==========================================
+// បង្កើតតារាងលទ្ធផលប្រឡងប្រចាំខែ (ស្តង់ដារក្រសួង)
+// ==========================================
 function renderMonthlyResults() {
     const m = document.getElementById('result-month-selector').value;
     const container = document.getElementById('monthly-results-container');
     if(!container) return;
     container.innerHTML = '';
 
-    const sorted = [...currentClassDb].filter(s => s.scores[m] && s.scores[m].avg > 0).sort((a, b) => b.scores[m].avg - a.scores[m].avg);
+    const sorted = [...AppState.currentClassDb].filter(s => s.scores[m] && s.scores[m].avg > 0).sort((a, b) => b.scores[m].avg - a.scores[m].avg);
     if(sorted.length === 0) return container.innerHTML = `<p class="p-4 text-center text-gray-400">មិនទាន់មានទិន្នន័យលទ្ធផលសម្រាប់ចន្លោះពេលនេះទេ</p>`;
 
     let passCount = 0, passFemale = 0;
 
+    // បង្កើតក្បាលតារាង (Header) ពណ៌ខៀវក្រម៉ៅ
     const tableHeader = `
-        <thead class="bg-gray-100 text-gray-800 font-bold border-b-2 border-gray-400">
+        <thead class="bg-blue-800 text-white font-bold">
             <tr>
-                <th class="border border-gray-400 p-1.5 w-10 text-xs">ល.រ</th>
-                <th class="border border-gray-400 p-1.5 w-16 text-xs hidden md:table-cell print:hidden">អត្តលេខ</th>
-                <th class="border border-gray-400 p-1.5 text-left text-xs">គោត្តនាម និងនាម</th>
-                <th class="border border-gray-400 p-1.5 w-12 text-xs">ភេទ</th>
-                <th class="border border-gray-400 p-1.5 w-16 text-xs text-blue-700">មធ្យម</th>
-                <th class="border border-gray-400 p-1.5 w-16 text-xs text-red-700">ចំណាត់</th>
-                <th class="border border-gray-400 p-1.5 w-16 text-xs">និទ្ទេស</th>
+                <th class="border border-blue-900 p-2 w-10 text-[10px] md:text-xs text-center">ល.រ</th>
+                <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center hidden md:table-cell print:table-cell">អត្តលេខ</th>
+                <th class="border border-blue-900 p-2 text-left text-[10px] md:text-xs">គោត្តនាម និងនាម</th>
+                <th class="border border-blue-900 p-2 w-10 text-[10px] md:text-xs text-center">ភេទ</th>
+                <th class="border border-blue-900 p-2 w-14 text-[10px] md:text-xs text-center">មធ្យមភាគ</th>
+                <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center">ចំណាត់ថ្នាក់</th>
+                <th class="border border-blue-900 p-2 w-14 text-[10px] md:text-xs text-center">និទ្ទេស</th>
+                <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center print:table-cell hidden">ផ្សេងៗ</th>
             </tr>
         </thead>
     `;
 
     const half = Math.ceil(sorted.length / 2);
-    const leftCol = sorted.slice(0, half);
-    const rightCol = sorted.slice(half);
+    let leftHtml = '', rightHtml = '';
 
-    let leftHtml = '';
-    let rightHtml = '';
-
-    leftCol.forEach((s, idx) => {
+    sorted.forEach((s, idx) => {
         const sc = s.scores[m];
         if(sc.avg >= 5) { passCount++; if(s.gender === 'ស') passFemale++; }
-        let rowClass = (m === 'result_sem1' || m === 'result_sem2') ? 'bg-blue-50 font-bold' : '';
-        leftHtml += `
-            <tr class="hover:bg-gray-50 border-b border-gray-300 ${rowClass}">
-                <td class="p-1.5 border-r border-gray-300 text-center text-xs">${idx + 1}</td>
-                <td class="p-1.5 border-r border-gray-300 text-gray-600 text-xs hidden md:table-cell print:hidden">${s.id}</td>
-                <td class="p-1.5 border-r border-gray-300 text-left font-bold text-gray-800 text-[11px]">${s.name}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center text-xs ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'}">${s.gender}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center font-bold text-blue-700 text-xs">${sc.avg || 0}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center font-bold text-red-700 text-xs">${sc.rank}</td>
-                <td class="p-1.5 text-center font-bold text-green-700 text-xs">${sc.grade || '-'}</td>
-            </tr>
-        `;
-    });
 
-    rightCol.forEach((s, idx) => {
-        const sc = s.scores[m];
-        if(sc.avg >= 5) { passCount++; if(s.gender === 'ស') passFemale++; }
-        let rowClass = (m === 'result_sem1' || m === 'result_sem2') ? 'bg-blue-50 font-bold' : '';
-        rightHtml += `
-            <tr class="hover:bg-gray-50 border-b border-gray-300 ${rowClass}">
-                <td class="p-1.5 border-r border-gray-300 text-center text-xs">${half + idx + 1}</td>
-                <td class="p-1.5 border-r border-gray-300 text-gray-600 text-xs hidden md:table-cell print:hidden">${s.id}</td>
-                <td class="p-1.5 border-r border-gray-300 text-left font-bold text-gray-800 text-[11px]">${s.name}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center text-xs ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'}">${s.gender}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center font-bold text-blue-700 text-xs">${sc.avg || 0}</td>
-                <td class="p-1.5 border-r border-gray-300 text-center font-bold text-red-700 text-xs">${sc.rank}</td>
-                <td class="p-1.5 text-center font-bold text-green-700 text-xs">${sc.grade || '-'}</td>
+        let zebraClass = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'; // ឆ្លាស់ពណ៌
+
+        let rowItem = `
+            <tr class="${zebraClass} hover:bg-blue-100 transition-colors">
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] md:text-xs font-medium text-gray-700">${idx + 1}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-gray-500 text-[10px] md:text-xs hidden md:table-cell print:table-cell">${s.id}</td>
+                <td class="p-1.5 border border-slate-300 text-left font-bold text-gray-800 text-[11px] md:text-xs">${s.name}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] md:text-xs font-bold ${s.gender === 'ស' ? 'text-pink-600 print-text-red' : 'text-blue-600 print-text-blue'}">${s.gender}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-blue-700 print-text-blue text-[10px] md:text-xs">${sc.avg || 0}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-red-600 print-text-red text-[10px] md:text-xs">${sc.rank}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-green-600 print-text-green text-[10px] md:text-xs">${sc.grade || '-'}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] print:table-cell hidden"></td>
             </tr>
         `;
+        if (idx < half) leftHtml += rowItem; else rightHtml += rowItem;
     });
 
     container.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <table class="w-full text-sm border-collapse border border-gray-400" id="monthly-results-table">
-                ${tableHeader}
-                <tbody class="text-gray-600">${leftHtml}</tbody>
-            </table>
-            ${rightCol.length > 0 ? `
-            <table class="w-full text-sm border-collapse border border-gray-400" id="monthly-results-table-right">
-                ${tableHeader}
-                <tbody class="text-gray-600">${rightHtml}</tbody>
-            </table>
-            ` : ''}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 print:gap-6">
+            <table class="w-full border-collapse moeys-table shadow-sm rounded-lg overflow-hidden">${tableHeader}<tbody class="text-gray-700">${leftHtml}</tbody></table>
+            ${rightHtml ? `<table class="w-full border-collapse moeys-table shadow-sm rounded-lg overflow-hidden">${tableHeader}<tbody class="text-gray-700">${rightHtml}</tbody></table>` : ''}
         </div>
     `;
 
-    document.getElementById('sum-total').innerText = currentClassDb.length;
-    document.getElementById('sum-female').innerText = currentClassDb.filter(s => s.gender === 'ស').length;
+    document.getElementById('sum-total').innerText = AppState.currentClassDb.length;
+    document.getElementById('sum-female').innerText = AppState.currentClassDb.filter(s => s.gender === 'ស').length;
     document.getElementById('sum-pass').innerText = passCount;
     document.getElementById('sum-pass-f').innerText = passFemale;
 
-    let failCount = currentClassDb.filter(s => s.scores[m] && s.scores[m].avg > 0 && s.scores[m].avg < 5).length;
-    let failFemale = currentClassDb.filter(s => s.gender === 'ស' && s.scores[m] && s.scores[m].avg > 0 && s.scores[m].avg < 5).length;
+    let failCount = AppState.currentClassDb.filter(s => s.scores[m] && s.scores[m].avg > 0 && s.scores[m].avg < 5).length;
+    let failFemale = AppState.currentClassDb.filter(s => s.gender === 'ស' && s.scores[m] && s.scores[m].avg > 0 && s.scores[m].avg < 5).length;
     if(document.getElementById('sum-fail')) document.getElementById('sum-fail').innerText = failCount;
     if(document.getElementById('sum-fail-f')) document.getElementById('sum-fail-f').innerText = failFemale;
 
-    if(document.getElementById('result-month-title')) document.getElementById('result-month-title').innerText = monthNamesKh[m] || '';
+    // ចំណងជើង
+    let titleText = constants.monthNamesKh[m] || '';
+    if(!m.includes('sem')) titleText = titleText.replace('ខែ ', 'ប្រចាំខែ ');
+    if(document.getElementById('result-month-title')) document.getElementById('result-month-title').innerText = titleText;
 }
 function calculateSemesterResults() {
     currentClassDb.forEach(s => {

@@ -172,6 +172,7 @@ body.sidebar-open {
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
+    scroll-margin-left: 20px;
 }
 ::-webkit-scrollbar-track {
     background: #f1f1f1;
@@ -222,10 +223,9 @@ body.sidebar-open {
 }
 
 /* =========================================
-   ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles)
+   ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles ស្តង់ដារក្រសួងអប់រំ)
    ========================================= */
 @media print {
-    /* កំណត់ទំហំក្រដាសលំនាំដើមជា A4 Portrait (បញ្ឈរ) និង Margin 1cm */
     @page {
         size: A4 portrait;
         margin: 1cm;
@@ -256,80 +256,58 @@ body.sidebar-open {
         margin: 0 !important;
     }
 
-    /* ប្រសិនបើជាផ្ទាំង 'បញ្ចូលពិន្ទុ' ឬ 'ស្រង់វត្តមាន' ឱ្យវាប្តូរទៅ Landscape (ផ្តេក) ដោយស្វ័យប្រវត្តិ */
     #view-detailed-sheet .print-area,
     #view-attendance-report .print-area {
         page-break-before: always;
     }
 
-    /* ការកំណត់តារាងឱ្យមានស៊ុមខ្មៅច្បាស់ */
-    .grade-table th, .grade-table td,
-    .report-table th, .report-table td,
-    #monthly-results-table th, #monthly-results-table td,
-    #monthly-results-table-right th, #monthly-results-table-right td {
-        border: 1px solid #000 !important;
-        padding: 3px !important;
-        font-size: 10px !important;
-        color: #000 !important;
-    }
-
-    /* បន្ថែមពណ៌ផ្ទៃសម្រាប់ជួរដេកទី១ (Header) នៃតារាងទាំងអស់ */
-    .grade-table thead tr, .grade-table tr:first-child,
-    .report-table thead tr, .report-table tr:first-child,
-    #monthly-results-table thead tr, #monthly-results-table tr:first-child,
-    #monthly-results-table-right thead tr, #monthly-results-table-right tr:first-child,
-    .print-two-columns table thead tr, .print-two-columns table tr:first-child {
-        background-color: #ffffff !important;
-        color: #000 !important;
-    }
-
-    .grade-input {
-        border: none !important;
-        background: transparent !important;
-        height: auto !important;
-        padding: 0 !important;
-    }
-
-    /* បង្ខំឱ្យពណ៌ផ្ទៃ (Background Colors) លេចចេញមកពេល Print */
+    /* បង្ខំឱ្យ Browser ព្រីនចេញពណ៌ Background យ៉ាងស្រស់ស្អាត */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    /* លាក់ Footer ក្លែងក្លាយក្នុង Monthly Results ដើម្បីសន្សំទំព័រ */
-    #view-monthly-results .bg-gray-50.p-5 {
-        display: none !important;
+    /* ការកំណត់តារាងស្តង់ដារក្រសួង (MoEYS Standard) */
+    .moeys-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    .moeys-table th {
+        background-color: #1e3a8a !important; /* ពណ៌ខៀវក្រម៉ៅ សម្រាប់ Header */
+        color: #ffffff !important;
+        font-family: 'Kantumruy Pro', sans-serif !important;
+        font-weight: bold !important;
+        border: 1px solid #0f172a !important;
+        padding: 8px 4px !important;
+        text-align: center;
+        font-size: 11px !important;
+    }
+    .moeys-table td {
+        border: 1px solid #64748b !important;
+        padding: 6px 4px !important;
+        color: #000000 !important;
+        font-size: 11px !important;
     }
 
-    /* សម្រួលគម្លាតតារាងក្នុង Monthly Results ពេល Print ជា ២ ជួរ (ប្រើ Grid) */
-    #monthly-results-container .grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 15px !important;
+    /* ពណ៌ផ្ទៃជួរដេកឆ្លាស់គ្នា (Zebra Striping ពណ៌ផ្ទៃមេឃខ្ចី) */
+    .moeys-table tbody tr:nth-child(even) td {
+        background-color: #f0fdf4 !important; /* ពណ៌បៃតងខ្ចីព្រាលៗ */
+    }
+    .moeys-table tbody tr:nth-child(odd) td {
+        background-color: #ffffff !important;
     }
 
-    /* រៀបចំតារាងចំណាត់ថ្នាក់ជា ២ ជួរ (Columns) បើប្រើ Column-count */
-    .print-two-columns {
-        column-count: 2;
-        column-gap: 20px;
-        column-rule: 2px solid #ccc;
-        width: 100%;
-        display: block;
-    }
+    /* កំណត់ពណ៌អក្សរឱ្យលេចធ្លោពេលព្រីន */
+    .print-text-red { color: #dc2626 !important; }
+    .print-text-blue { color: #2563eb !important; }
+    .print-text-green { color: #16a34a !important; }
 
-    .print-two-columns table {
-        width: 100%;
-        break-inside: avoid; /* ការពារកុំឱ្យដាច់តារាងពាក់កណ្ដាលពេលឆ្លងជួរ */
-        page-break-inside: avoid;
-    }
+    /* តារាងផ្សេងៗទៀត (ពិន្ទុ និង វត្តមាន) */
+    .grade-table th, .report-table th { background-color: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; padding: 4px !important; font-size: 10px !important; }
+    .grade-table td, .report-table td { border: 1px solid #000 !important; padding: 4px !important; font-size: 10px !important; color: #000 !important; }
+    .grade-input { border: none !important; background: transparent !important; height: auto !important; padding: 0 !important; }
 
-    /* ការកំណត់សម្រាប់កាតសិស្ស (ID Card) ពេល Print */
-    #id-card-print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        box-shadow: none !important;
-        border: 1px dashed #64748b !important;
-        border-radius: 0 !important;
-    }
+    #view-monthly-results .bg-gray-50.p-5 { display: none !important; }
+    #monthly-results-container .grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 15px !important; }
+    #id-card-print-area { position: absolute; left: 0; top: 0; box-shadow: none !important; border: 1px dashed #64748b !important; border-radius: 0 !important; }
 }
