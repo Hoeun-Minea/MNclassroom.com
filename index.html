@@ -38,13 +38,13 @@
         </header>
 
         <!-- Hero Section -->
-        <section class="container mx-auto px-6 py-12 md:py-20 flex flex-col lg:flex-row items-center gap-12">
+        <section class="container mx-auto px-6 py-12 md:py-20 flex flex-col lg:flex-row items-center gap-12 background-gradien">
             <!-- ផ្នែកអក្សរខាងឆ្វេង -->
             <div class="lg:w-1/2 text-center lg:text-left">
                 <div class="inline-block bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold mb-6 tracking-wide">
                     <i class="fa-solid fa-star text-yellow-500 mr-1"></i> ជំនាន់ថ្មី ឆ្នាំ២០២៦
                 </div>
-                <h2 class="font-moul text-3xl md:text-5xl text-gray-800 mb-6 leading-tight">
+                <h2 class="font-moul text-3xl md:text-5xl text-gray-800 mb-6 leading-tight justify-center">
                     បង្កើនប្រសិទ្ធភាពការងារ <span class="text-blue-600"> <br><br>គ្រូបង្រៀន </span><br><br>តាមរយៈបច្ចេកវិទ្យាទំនើប
                 </h2>
                 <p class="text-gray-600 text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
@@ -416,7 +416,7 @@
                     <span id="header-class-badge" class="bg-blue-50 text-blue-800 font-bold px-3 py-1.5 rounded-lg text-xs border border-blue-100 shadow-sm hidden md:inline-block">ថ្នាក់ទី ២ខ</span>
                 </div>
                 <button onclick="fetchStudents()" class="text-gray-600 hover:text-blue-700 bg-gray-50 hover:bg-blue-50 px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold flex items-center gap-2 transition shadow-sm">
-                    <i class="fa-solid fa-rotate"></i> ទាញយក
+                    <i class="fa-solid fa-rotate"></i> ទាញយកទិន្នន័យ
                 </button>
             </header>
 
@@ -522,6 +522,15 @@
                         <div class="p-6 bg-blue-50 border-b border-blue-100">
                             <h2 class="text-md font-bold text-blue-800 mb-4"><i class="fa-solid fa-user-plus mr-2"></i> បន្ថែមសិស្សថ្មីចូលថ្នាក់ <span class="display-current-class underline text-blue-900">២ខ</span></h2>
                             <form id="add-student-form" onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="flex gap-2">
+                                <button type="button" onclick="downloadExcelTemplate()" class="bg-white hover:bg-gray-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm border border-blue-200">
+                                    <i class="fa-solid fa-download"></i> ទម្រង់ Excel
+                                </button>
+                                <label class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm cursor-pointer mb-0 inline-block">
+                                    <i class="fa-solid fa-file-excel"></i> បញ្ចូលពី Excel
+                                    <input type="file" id="bulk-excel-input" accept=".xlsx, .xls" class="hidden" onchange="handleExcelImport(event)">
+                                </label>
+                                </div>
                                 <div><input type="text" id="new-id" required placeholder="អត្តលេខ" class="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></div>
                                 <div><input type="text" id="new-name" required placeholder="គោត្តនាម និងនាម" class="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></div>
                                 <div>
@@ -616,7 +625,7 @@
                                 <tbody id="att-report-tbody"></tbody>
                             </table>
                             <div class="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <p class="text-xs text-gray-600 leading-relaxed font-medium"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> សម្គាល់៖ សូមវាយអក្សរ <strong class="text-green-600 bg-green-50 px-1 rounded">V</strong> = វត្តមាន, <strong class="text-red-500 bg-red-50 px-1 rounded">A</strong> = អវត្តមាន, <strong class="text-yellow-600 bg-yellow-50 px-1 rounded">L</strong> = ច្បាប់។ ថ្ងៃសៅរ៍ និងអាទិត្យ ត្រូវបានផ្អាកសម្រាកស្វ័យប្រវត្តិ។
+                                <p class="text-xs text-gray-600 leading-relaxed font-medium"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> សម្គាល់៖ សូមវាយអក្សរ <strong class="text-green-600 bg-green-50 px-1 rounded">V</strong> = វត្តមាន, <strong class="text-red-500 bg-red-50 px-1 rounded">A</strong> = អវត្តមាន, <strong class="text-yellow-600 bg-yellow-50 px-1 rounded">L</strong> = ច្បាប់។ ថ្ងៃអាទិត្យ និងថ្ងៃបុណ្យ ត្រូវបានផ្អាកសម្រាកស្វ័យប្រវត្តិ។
                                     <button class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 ml-4 no-print shadow-sm transition" onclick="calculateAttendance()"><i class="fa-solid fa-calculator text-blue-500 mr-1"></i> គណនាសរុប</button>
                                 </p>
                                 <button onclick="saveMonthlyAttendance()" id="btn-save-monthly-att" class="bg-green-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-green-700 no-print transition shadow-md"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមាន</button>
@@ -630,8 +639,8 @@
                                 <p class="text-gray-400">.......................................</p>
                             </div>
                             <div class="w-1/3 text-center">
-                                <p class="italic text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
-                                <p class="italic mb-6 text-xs">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="font-siemreap text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
+                                <p class="font-siemreap mb-6 text-xs">ខ្សុំ, ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
                                 <p class="mb-16 font-bold text-sm">គ្រូបន្ទុកថ្នាក់ទី <span class="display-current-class font-bold text-blue-700">២ខ</span></p>
                                 <p class="font-moul text-sm text-blue-800 sys-teacher">ហឿន វិផា</p>
                             </div>
@@ -722,8 +731,8 @@
                                 <p class="text-gray-400">.......................................</p>
                             </div>
                             <div class="w-1/3 text-center">
-                                <p class="italic text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
-                                <p class="italic mb-6 text-xs">កៀនស្វាយ ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="font-siemreap text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
+                                <p class="font-siemreap mb-6 text-xs">ខ្សុំ, ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
                                 <p class="mb-16 font-bold text-sm">គ្រូបន្ទុកថ្នាក់ទី <span class="display-current-class font-bold text-blue-700">២ខ</span></p>
                                 <p class="font-moul text-sm text-blue-800 sys-teacher">ហឿន វិផា</p>
                             </div>
@@ -793,12 +802,12 @@
                                 </ul>
                             </div>
                             <div class="md:w-1/3 text-center mt-8 md:mt-0"> <br>
-                                <p class="mb-16 font-bold text-sm">បានឃើញ និងឯកភាព<br><span class="font-moul text-xs font-normal sys-principal text-gray-800">នាយិកាសាលា</span></p>
+                                <p class="mb-16 font-siemreap text-sm">បានឃើញ និងឯកភាព<br><span class="font-moul text-xs font-normal sys-principal text-gray-800">នាយិកាសាលា</span></p>
                                 <p class="text-gray-400">.......................................</p>
                             </div>
                             <div class="md:w-1/3 text-center mt-8 md:mt-0"> <br>
-                                <p class="italic text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
-                                <p class="italic mb-6 text-xs">កៀនស្វាយ, ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
+                                <p class="font-siemreap text-xs">ថ្ងៃ........................ខែ........................ឆ្នាំ.................ព.ស.២៥៧០</p>
+                                <p class="font-siemreap mb-6 text-xs">ខ្សុំ, ថ្ងៃទី.........ខែ..................ឆ្នាំ២០២....</p>
                                 <p class="mb-16 font-bold text-sm">គ្រូបន្ទុកថ្នាក់ទី <span class="display-current-class font-bold text-teal-700">២ខ</span></p>
                                 <p class="font-moul text-sm text-teal-800 sys-teacher">ហឿន វិផា</p>
                             </div>

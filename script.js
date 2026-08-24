@@ -562,9 +562,9 @@ const khmerDays = ['អា.', 'ច.', 'អ.', 'ព.', 'ព្រ.', 'សុ.', '
 function getDaysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
 
 function handleDateChange() {
-    const yyyyMm = document.getElementById('att-month-selector').value;
-    if(yyyyMm) {
-        const parts = yyyyMm.split('-');
+    const yyyyMmDd = document.getElementById('att-month-selector').value;
+    if(yyyyMmDd) {
+        const parts = yyyyMmDd.split('-');
         currentYear = parseInt(parts[0]); currentMonthNum = parseInt(parts[1]);
         currentDaysInMonth = getDaysInMonth(currentYear, currentMonthNum);
     }
@@ -572,8 +572,8 @@ function handleDateChange() {
 }
 
 async function fetchAttendanceReport() {
-    const yyyyMm = document.getElementById('att-month-selector').value;
-    if(!yyyyMm) return;
+    const yyyyMmDd=document.getElementById('att-month-selector').value;
+    if(!yyyyMmDd) return;
     try {
         const response = await fetch(`${API_URL}?action=get_attendance&month=${yyyyMm}&class_name=${encodeURIComponent(currentClassName)}`);
         const result = await response.json();
@@ -595,7 +595,7 @@ function renderAttendanceReport() {
     for(let i=1; i<=currentDaysInMonth; i++) {
         let dateObj = new Date(currentYear, currentMonthNum - 1, i);
         let dayOfWeek = dateObj.getDay();
-        let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        let isWeekend = (dayOfWeek === 0 || dayOfWeek === 7);
         let khDayName = khmerDays[dayOfWeek];
         let bgClass = isWeekend ? 'bg-gray-200 text-red-500 font-bold' : 'bg-green-50 text-green-900';
         khmerDaysRow.innerHTML += `<th class="${bgClass} px-0.5 py-1 text-[11px]">${khDayName}</th>`;
@@ -606,7 +606,7 @@ function renderAttendanceReport() {
 
     tbody.innerHTML = '';
     const sortedDb = [...currentClassDb].sort((a, b) => a.name.localeCompare(b.name, 'km'));
-    if(sortedDb.length === 0) return tbody.innerHTML = `<tr><td colspan="${currentDaysInMonth + 6}" class="py-8 text-center text-gray-400">គ្មានបញ្ជីសិស្សទេក្នុងថ្នាក់នេះ</td></tr>`;
+    if(sortedDb.length === 0) return tbody.innerHTML = `<tr><td colspan="${currentDaysInMonth + 7}" class="py-8 text-center text-gray-400">គ្មានបញ្ជីសិស្សទេក្នុងថ្នាក់នេះ</td></tr>`;
 
     sortedDb.forEach((s, idx) => {
         let rowHtml = `<tr class="bg-white border-b hover:bg-gray-50" data-studentid="${s.id}"><td class="text-center">${idx + 1}</td><td class="text-left px-2 font-bold text-gray-800">${s.name}</td><td class="text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-medium">${s.gender}</td>`;
@@ -614,7 +614,7 @@ function renderAttendanceReport() {
         for(let i=1; i<=currentDaysInMonth; i++) {
             let dateObj = new Date(currentYear, currentMonthNum - 1, i);
             let dayOfWeek = dateObj.getDay();
-            let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+            let isWeekend = (dayOfWeek === 0 || dayOfWeek === 7);
             let val = studentAtt[i] || '';
             if(isWeekend && !val) val = '-';
             let disabledAttr = isWeekend ? 'disabled' : '';
@@ -643,8 +643,8 @@ function calculateAttendance() {
 }
 
 async function saveMonthlyAttendance() {
-    const yyyyMm = document.getElementById('att-month-selector').value;
-    if(!yyyyMm) return alert("សូមជ្រើសរើសខែជាមុនសិន!");
+    const yyyyMmDd=document.getElementById('att-month-selector').value;
+    if(!yyyyMmDd)return alert("សូមជ្រើសរើសខែជាមុនសិន!");
     calculateAttendance();
     const rows = document.querySelectorAll('#att-report-tbody tr[data-studentid]');
     let attData = {};
@@ -664,7 +664,7 @@ async function saveMonthlyAttendance() {
     const btn = document.getElementById('btn-save-monthly-att');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងរក្សាទុក...';
     try {
-        await sendPostRequest({ action: 'save_monthly_attendance', month: yyyyMm, class_name: currentClassName, data: attData });
+        await sendPostRequest({ action: 'save_monthly_attendance', month: yyyyMmDd,class_name: currentClassName, data: attData });
         showToast(`ជោគជ័យ!`);
     } catch(e) { showToast("បរាជ័យក្នុងការភ្ជាប់ទៅ Server!"); }
     finally { btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i> រក្សាទុកវត្តមាន'; }
@@ -682,7 +682,7 @@ function loadDetailedSheet() {
         const sc = s.scores[m] || {};
         let inputHtml = "";
         for(let i=1; i<=19; i++) {
-            inputHtml += `<td><input type="number" min="0" max="10" step="0.5" class="grade-input s${i}" value="${sc[`sub${i}`] !== undefined ? sc[`sub${i}`] : ''}"></td>`;
+            inputHtml += `<td><input type="number" min="" max="10" step="0.5" class="grade-input s${i}" value="${sc[`sub${i}`] !== undefined ? sc[`sub${i}`] : ''}"></td>`;
         }
         tbody.innerHTML += `
             <tr class="hover:bg-blue-50 transition-colors" data-id="${s.id}">
@@ -1024,4 +1024,97 @@ function generateTrackingBook() {
         }
     });
     if(tbody.innerHTML === '') tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-800 p-4 text-gray-400">មិនទាន់មានទិន្នន័យពិន្ទុឡើយ</td></tr>`;
+}
+// ==========================================
+// មុខងារទាញយកទិន្នន័យសិស្សពី Excel (Bulk Import)
+// ==========================================
+
+// ១. ទាញយកទម្រង់ (Template) Excel
+function downloadExcelTemplate() {
+    const headers = [["អត្តលេខ", "ឈ្មោះ", "ភេទ(ប/ស)", "ថ្ងៃកំណើត", "ទីកន្លែងកំណើត", "ឈ្មោះឪពុក", "ឈ្មោះម្តាយ"]];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+
+    // កំណត់ទំហំ Column
+    ws['!cols'] = [{wch: 10}, {wch: 25}, {wch: 10}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 20}];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, "ទម្រង់បញ្ចូលឈ្មោះសិស្ស.xlsx");
+}
+
+// ២. អានឯកសារ Excel និងបញ្ជូនទៅ Server
+async function handleExcelImport(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    showToast("កំពុងអានឯកសារ Excel...");
+    const reader = new FileReader();
+
+    reader.onload = async function(evt) {
+        try {
+            const data = evt.target.result;
+            // អានឯកសារដោយប្រើ SheetJS library
+            const workbook = XLSX.read(data, {type: 'binary'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // បម្លែងទៅជា Array
+            const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+            if(rawData.length <= 1) {
+                alert("ឯកសារទទេ ឬគ្មានទិន្នន័យសិស្សទេ!");
+                e.target.value = ""; return;
+            }
+
+            let newStudents = [];
+            // រំលងជួរទី 1 (Headers) ចាប់ផ្តើមពីជួរទី 2 (index 1)
+            for(let i=1; i<rawData.length; i++) {
+                let row = rawData[i];
+                if(!row[0] || !row[1]) continue; // បោះបង់ចោលបើរូបអត់មានអត្តលេខ ឬឈ្មោះ
+
+                newStudents.push({
+                    id: row[0].toString().trim(),
+                    name: row[1].toString().trim(),
+                    gender: row[2] ? row[2].toString().trim() : "ប",
+                    dob: row[3] ? row[3].toString() : "",
+                    pob: row[4] ? row[4].toString() : "",
+                    father: row[5] ? row[5].toString() : "",
+                    mother: row[6] ? row[6].toString() : ""
+                });
+            }
+
+            if(newStudents.length === 0) {
+                alert("រកមិនឃើញទិន្នន័យត្រឹមត្រូវ។ សូមប្រាកដថាបានបំពេញ 'អត្តលេខ' និង 'ឈ្មោះ'។");
+                e.target.value = ""; return;
+            }
+
+            // បង្ហាញការបញ្ជាក់មុនពេលបញ្ជូន
+            if(!confirm(`ប្រព័ន្ធរកឃើញសិស្សចំនួន ${newStudents.length} នាក់ ក្នុងឯកសារនេះ។\nតើលោកគ្រូពិតជាចង់បញ្ចូលទៅក្នុងថ្នាក់ទី ${AppState.currentClassName} មែនទេ?`)) {
+                e.target.value = ""; return;
+            }
+
+            showToast("កំពុងបញ្ចូលទិន្នន័យទៅក្នុងប្រព័ន្ធ...");
+            const payload = {
+                action: "import_students_bulk",
+                class_name: AppState.currentClassName,
+                students: newStudents
+            };
+
+            // បញ្ជូនទៅកាន់ Google Apps Script
+            const result = await fetchAPI(payload);
+
+            if(result.status === "success") {
+                showToast(result.message);
+                fetchStudents(); // ទាញយកទិន្នន័យថ្មីមកបង្ហាញលើតារាង
+            } else {
+                alert("បរាជ័យ: " + result.message);
+            }
+        } catch(error) {
+            alert("មានបញ្ហាក្នុងការអានឯកសារ! សូមប្រាកដថាវាជាឯកសារ Excel ត្រឹមត្រូវ។");
+            console.error(error);
+        } finally {
+            e.target.value = ""; // លុបតម្លៃ input ចោលដើម្បីអាច Upload ឯកសារដដែលម្ដងទៀតបាន
+        }
+    };
+    reader.readAsBinaryString(file);
 }

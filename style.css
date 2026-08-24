@@ -1,3 +1,4 @@
+
 /* =========================================
    ការកំណត់ទូទៅ (Global Styles & Reset)
    ========================================= */
@@ -6,7 +7,7 @@
 }
 
 body {
-    font-family: 'Kantumruy Pro', sans-serif;
+    font-family: '!Khmer OS Siemreap', sans-serif;
     background-color: #f3f4f6;
     margin: 0;
     padding: 0;
@@ -20,12 +21,29 @@ body {
 .font-siemreap {
     font-family: 'Kantumruy Pro', sans-serif;
 }
+/* =========================================
+   ផ្ទាំងចូលប្រព័ន្ធ (Login & Auth Screens)
+   ========================================= */
+#auth-screen {
+    padding: 1rem;
+}
+
+#login-container, #register-container {
+    max-width: 100%;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    #login-container, #register-container {
+        width: 400px;
+    }
+}
 
 /* =========================================
    Responsive Sidebar & Layout (សម្រាប់ទូរសព្ទ និង PC)
    ========================================= */
 #main-app {
-    display: flex;
+    display: -ms-flex;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
@@ -45,7 +63,7 @@ aside {
 /* សម្រាប់អេក្រង់ទូរសព្ទ និងថបប្លេត (Mobile & Tablet) */
 @media (max-width: 768px) {
     aside {
-        position: fixed;
+        position: -ms-device-fixed;
         left: 0;
         top: 0;
         height: 100%;
@@ -80,8 +98,8 @@ aside {
 
 .grade-table th, .report-table th {
     background-color: #f8fafc;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 700;
+    color: #0625c4;
 }
 
 /* ប្រអប់បញ្ចូលពិន្ទុឱ្យងាយស្រួលចុចលើទូរសព្ទ */
@@ -89,7 +107,7 @@ aside {
     width: 50px;
     height: 32px;
     text-align: center;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #8ca3d0;
     border-radius: 6px;
     padding: 2px;
     font-size: 14px;
@@ -108,6 +126,7 @@ aside {
     height: 32px;
     text-align: center;
     border: none;
+    border-radius: 10px;
     background: transparent;
     font-size: 13px;
     font-weight: bold;
@@ -120,7 +139,7 @@ aside {
 }
 
 .weekend-col {
-    background-color: #e5e7eb !important;
+    background-color: #ff0000 !important;
     color: #9ca3af;
 }
 
@@ -173,31 +192,13 @@ aside {
 }
 
 /* =========================================
-   ផ្ទាំងចូលប្រព័ន្ធ (Login & Auth Screens)
-   ========================================= */
-#auth-screen {
-    padding: 1rem;
-}
-
-#login-container, #register-container {
-    max-width: 100%;
-    width: 100%;
-}
-
-@media (min-width: 640px) {
-    #login-container, #register-container {
-        width: 400px;
-    }
-}
-
-/* =========================================
    ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles)
    ========================================= */
 @media print {
-    /* កំណត់ទំហំក្រដាសលំនាំដើមជា A4 Portrait (បញ្ឈរ) */
+    /* កំណត់ទំហំក្រដាសលំនាំដើមជា A4 Portrait (បញ្ឈរ) និង Margin 1.5cm */
     @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 1cm;
     }
 
     body { background: white !important; font-size: 11px !important; }
@@ -222,7 +223,7 @@ aside {
         box-shadow: none !important;
         width: 100% !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 0 !important; /* កែមក 0 ព្រោះមាន Margin នៅ @page រួចហើយ ការពារកុំឱ្យគម្លាតធំពេក */
     }
 
     /* ប្រសិនបើជាផ្ទាំង 'បញ្ចូលពិន្ទុ' ឬ 'ស្រង់វត្តមាន' ឱ្យវាប្តូរទៅ Landscape (ផ្តេក) ដោយស្វ័យប្រវត្តិ */
@@ -246,6 +247,16 @@ aside {
         color: #000 !important;
     }
 
+    /* បន្ថែមពណ៌ផ្ទៃសម្រាប់ជួរដេកទី១ (Header) នៃតារាងទាំងអស់ */
+    .grade-table thead tr, .grade-table tr:first-child,
+    .report-table thead tr, .report-table tr:first-child,
+    #monthly-results-table thead tr, #monthly-results-table tr:first-child,
+    #monthly-results-table-right thead tr, #monthly-results-table-right tr:first-child,
+    .print-two-columns table thead tr, .print-two-columns table tr:first-child {
+        background-color: #ffffff !important; /* ពណ៌ប្រផេះ (អាចដូរតាមការចូលចិត្ត) */
+        color: #000 !important;
+    }
+
     .grade-input {
         border: none !important;
         background: transparent !important;
@@ -253,39 +264,31 @@ aside {
         padding: 0 !important;
     }
 
-    /* បង្ខំឱ្យពណ៌ផ្ទៃ (Background Colors) លេចចេញមកពេល Print */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
 
     /* លាក់ Footer ក្លែងក្លាយក្នុង Monthly Results ដើម្បីសន្សំទំព័រ */
     #view-monthly-results .bg-gray-50.p-5 {
         display: none !important;
     }
 
-    /* សម្រួលគម្លាតតារាងក្នុង Monthly Results ពេល Print ជា ២ ជួរ */
+    /* សម្រួលគម្លាតតារាងក្នុង Monthly Results ពេល Print ជា ២ ជួរ (ប្រើ Grid) */
     #monthly-results-container .grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 15px !important;
     }
-    /* រៀបចំតារាងចំណាត់ថ្នាក់ជា ២ ជួរ (Columns) */
+
+    /* រៀបចំតារាងចំណាត់ថ្នាក់ជា ២ ជួរ (Columns) បើប្រើ Column-count */
     .print-two-columns {
         column-count: 2;
         column-gap: 20px;
-        column-rule: 1px solid #ccc;
+        column-rule: 2px solid #ccc;
         width: 100%;
-        display: block;
+        display: block; /* ប្ដូរពី table-column-group មក block វិញទើប column-count ដំណើរការ */
     }
 
     .print-two-columns table {
         width: 100%;
         break-inside: avoid; /* ការពារកុំឱ្យដាច់តារាងពាក់កណ្ដាលពេលឆ្លងជួរ */
-    }
-
-    /* សម្រាប់ Monthly Results យើងប្រើ Grid ក្នុង JS ហើយ តែបើចង់ច្បាស់អាចបន្ថែមនេះ */
-    #monthly-results-container .grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 15px !important;
+        page-break-inside: avoid; /* ជំនួយបន្ថែមសម្រាប់ Browser ចាស់ៗ */
     }
 }
