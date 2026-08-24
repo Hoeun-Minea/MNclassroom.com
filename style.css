@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap');
 
 /* =========================================
    ការកំណត់ទូទៅ (Global Styles & Reset)
@@ -7,8 +8,7 @@
 }
 
 body {
-    /* Removed the stray '!' before Khmer OS Siemreap */
-    font-family: 'Khmer OS Siemreap', sans-serif;
+    font-family: 'Khmer OS Siemreap', 'Kantumruy Pro', sans-serif;
     background-color: #f3f4f6;
     margin: 0;
     padding: 0;
@@ -36,13 +36,13 @@ body {
     margin: 0 auto; /* Centers the containers horizontally */
 }
 
-/* Media query placed after the default mobile styles */
 @media (min-width: 640px) {
     #login-container, #register-container {
         width: 400px;
     }
 }
-//* =========================================
+
+/* =========================================
    Mobile Optimization (ទូរសព្ទដៃ)
    ========================================= */
 
@@ -214,11 +214,18 @@ body.sidebar-open {
     to {bottom: 0; opacity: 0;}
 }
 
+/* ពណ៌ Highlight នៅលើ Sidebar Nav */
+.nav-active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    font-weight: bold;
+}
+
 /* =========================================
    ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles)
    ========================================= */
 @media print {
-    /* កំណត់ទំហំក្រដាសលំនាំដើមជា A4 Portrait (បញ្ឈរ) និង Margin 1.5cm */
+    /* កំណត់ទំហំក្រដាសលំនាំដើមជា A4 Portrait (បញ្ឈរ) និង Margin 1cm */
     @page {
         size: A4 portrait;
         margin: 1cm;
@@ -246,17 +253,13 @@ body.sidebar-open {
         box-shadow: none !important;
         width: 100% !important;
         padding: 0 !important;
-        margin: 0 !important; /* កែមក 0 ព្រោះមាន Margin នៅ @page រួចហើយ ការពារកុំឱ្យគម្លាតធំពេក */
+        margin: 0 !important;
     }
 
     /* ប្រសិនបើជាផ្ទាំង 'បញ្ចូលពិន្ទុ' ឬ 'ស្រង់វត្តមាន' ឱ្យវាប្តូរទៅ Landscape (ផ្តេក) ដោយស្វ័យប្រវត្តិ */
     #view-detailed-sheet .print-area,
     #view-attendance-report .print-area {
         page-break-before: always;
-    }
-
-    @page :first {
-       /* Settings specific to the first page if needed */
     }
 
     /* ការកំណត់តារាងឱ្យមានស៊ុមខ្មៅច្បាស់ */
@@ -276,7 +279,7 @@ body.sidebar-open {
     #monthly-results-table thead tr, #monthly-results-table tr:first-child,
     #monthly-results-table-right thead tr, #monthly-results-table-right tr:first-child,
     .print-two-columns table thead tr, .print-two-columns table tr:first-child {
-        background-color: #ffffff !important; /* ពណ៌ប្រផេះ (អាចដូរតាមការចូលចិត្ត) */
+        background-color: #ffffff !important;
         color: #000 !important;
     }
 
@@ -287,6 +290,11 @@ body.sidebar-open {
         padding: 0 !important;
     }
 
+    /* បង្ខំឱ្យពណ៌ផ្ទៃ (Background Colors) លេចចេញមកពេល Print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 
     /* លាក់ Footer ក្លែងក្លាយក្នុង Monthly Results ដើម្បីសន្សំទំព័រ */
     #view-monthly-results .bg-gray-50.p-5 {
@@ -306,12 +314,22 @@ body.sidebar-open {
         column-gap: 20px;
         column-rule: 2px solid #ccc;
         width: 100%;
-        display: block; /* ប្ដូរពី table-column-group មក block វិញទើប column-count ដំណើរការ */
+        display: block;
     }
 
     .print-two-columns table {
         width: 100%;
         break-inside: avoid; /* ការពារកុំឱ្យដាច់តារាងពាក់កណ្ដាលពេលឆ្លងជួរ */
-        page-break-inside: avoid; /* ជំនួយបន្ថែមសម្រាប់ Browser ចាស់ៗ */
+        page-break-inside: avoid;
+    }
+
+    /* ការកំណត់សម្រាប់កាតសិស្ស (ID Card) ពេល Print */
+    #id-card-print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        box-shadow: none !important;
+        border: 1px dashed #64748b !important;
+        border-radius: 0 !important;
     }
 }
