@@ -2,12 +2,13 @@
 /* =========================================
    ការកំណត់ទូទៅ (Global Styles & Reset)
    ========================================= */
-* {
+*, *::before, *::after {
     box-sizing: border-box;
 }
 
 body {
-    font-family: '!Khmer OS Siemreap', sans-serif;
+    /* Removed the stray '!' before Khmer OS Siemreap */
+    font-family: 'Khmer OS Siemreap', sans-serif;
     background-color: #f3f4f6;
     margin: 0;
     padding: 0;
@@ -21,6 +22,7 @@ body {
 .font-siemreap {
     font-family: 'Kantumruy Pro', sans-serif;
 }
+
 /* =========================================
    ផ្ទាំងចូលប្រព័ន្ធ (Login & Auth Screens)
    ========================================= */
@@ -30,57 +32,78 @@ body {
 
 #login-container, #register-container {
     max-width: 100%;
-    width: 100%;
+    width: 100%; /* Default width for mobile */
+    margin: 0 auto; /* Centers the containers horizontally */
 }
 
+/* Media query placed after the default mobile styles */
 @media (min-width: 640px) {
     #login-container, #register-container {
         width: 400px;
     }
 }
-
-/* =========================================
-   Responsive Sidebar & Layout (សម្រាប់ទូរសព្ទ និង PC)
+//* =========================================
+   Mobile Optimization (ទូរសព្ទដៃ)
    ========================================= */
-#main-app {
-    display: -ms-flex;
-    width: 100vw;
-    height: 100vh;
+
+/* ធ្វើឱ្យការអូសតារាងទៅឆ្វេងស្តាំមានភាពរលូន (Smooth Scroll) លើ iOS/Android */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    padding-bottom: 10px; /* ទុកចន្លោះកុំឱ្យបាំង Scrollbar */
+}
+
+/* សម្រាប់តារាងធំៗ (ពិន្ទុ និងវត្តមាន): ធ្វើឱ្យឈ្មោះសិស្សនៅស្ងៀមពេលអូសទៅស្តាំ */
+@media (max-width: 768px) {
+    /* ថេរជួរឈរទី 2 (ឈ្មោះសិស្ស) កុំឱ្យរំកិល */
+    .report-table th:nth-child(2),
+    .report-table td:nth-child(2),
+    .grade-table th:nth-child(2),
+    .grade-table td:nth-child(2) {
+        position: sticky;
+        left: 0;
+        background-color: #f8fafc; /* ពណ៌ព្រាលៗ */
+        z-index: 5;
+        border-right: 2px solid #cbd5e1; /* បន្ទាត់ខ័ណ្ឌចែកឱ្យដាច់ */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+
+    /* ធ្វើឱ្យ Background ជួរដេកដែល Hover ដូរពណ៌ទាំងឈ្មោះដែល Sticky ផងដែរ */
+    .report-table tbody tr:hover td:nth-child(2),
+    .grade-table tbody tr:hover td:nth-child(2) {
+        background-color: #f1f5f9;
+    }
+
+    /* បង្រួមទំហំកាតសិស្សនៅលើអេក្រង់ទូរសព្ទឱ្យមើលឃើញពេញ តែមិនប៉ះពាល់ពេល Print */
+    #id-card-print-area {
+        transform: scale(0.85); /* បង្រួមបន្តិច */
+        transform-origin: top center;
+        margin-bottom: -15px;
+    }
+}
+
+/* ការពារកុំឱ្យអេក្រង់ខាងក្រោយរំកិល ពេលបើក Menu លើទូរសព្ទ */
+body.sidebar-open {
     overflow: hidden;
 }
 
-aside {
-    transition: transform 0.3s ease-in-out;
+/* ទំហំ Input ឱ្យធំងាយចុចលើទូរសព្ទ */
+@media (max-width: 640px) {
+    input[type="text"], input[type="password"], input[type="file"], select {
+        font-size: 16px !important; /* ទប់ស្កាត់ iOS កុំឱ្យ Auto-zoom ពេលចុចវាយអក្សរ */
+        padding: 12px 10px !important;
+    }
+    .grade-input {
+        padding: 6px !important;
+        width: 55px;
+        height: 38px;
+    }
 }
 
 /* សម្រាប់អេក្រង់កុំព្យូទ័រ (Desktop / PC) ឱ្យបង្ហាញ Sidebar ធម្មតាជាប់ជានិច្ច */
 @media (min-width: 769px) {
     aside {
         transform: translateX(0) !important;
-    }
-}
-
-/* សម្រាប់អេក្រង់ទូរសព្ទ និងថបប្លេត (Mobile & Tablet) */
-@media (max-width: 768px) {
-    aside {
-        position: -ms-device-fixed;
-        left: 0;
-        top: 0;
-        height: 100%;
-        /* កំណត់ទំហំ Sidebar អោយសមល្មមលើទូរសព្ទ */
-        width: 260px !important;
-        z-index: 100;
-        transform: translateX(-100%); /* លាក់ Sidebar ចេញពីអេក្រង់ដំបូងលើទូរសព្ទ */
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    aside.mobile-open {
-        transform: translateX(0) !important; /* បង្ហាញពេលចុច Menu Icon */
-    }
-
-    main {
-        width: 100% !important;
-        margin-left: 0 !important;
     }
 }
 

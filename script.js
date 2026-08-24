@@ -205,7 +205,8 @@ function switchTab(tabId) {
 
     const selectedView = document.getElementById(`view-${tabId}`);
     const selectedNav = document.getElementById(`nav-${tabId}`);
-
+    const aside = document.getElementById('main-sidebar');
+    if(aside.classList.contains('mobile-open')) toggleMobileSidebar();
     if(selectedView) selectedView.classList.remove('hidden');
     if(selectedNav) selectedNav.classList.add('nav-active');
 
@@ -234,14 +235,16 @@ function switchTab(tabId) {
 }
 
 function toggleMobileSidebar() {
-    const aside = document.getElementById('main-sidebar') || document.querySelector('aside');
+    const aside = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    if (aside.classList.contains('mobile-open')) {
-        aside.classList.remove('mobile-open');
-        if(overlay) overlay.classList.add('hidden');
+    const isOpen = aside.classList.toggle('mobile-open');
+
+    if(isOpen) {
+        overlay.classList.remove('hidden');
+        document.body.classList.add('sidebar-open'); // បិទមិនឱ្យអូសអេក្រង់ក្រោយបាន
     } else {
-        aside.classList.add('mobile-open');
-        if(overlay) overlay.classList.remove('hidden');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('sidebar-open');
     }
 }
 
