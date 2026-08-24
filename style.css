@@ -5,20 +5,20 @@
     box-sizing: border-box;
 }
 
-body { 
-    font-family: 'Kantumruy Pro', sans-serif; 
-    background-color: #f3f4f6; 
+body {
+    font-family: 'Kantumruy Pro', sans-serif;
+    background-color: #f3f4f6;
     margin: 0;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
-.font-moul { 
-    font-family: 'Moul', serif; 
+.font-moul {
+    font-family: 'Moul', serif;
 }
 
 .font-siemreap {
-    font-family: 'Kantumruy Pro', sans-serif; 
+    font-family: 'Kantumruy Pro', sans-serif;
 }
 
 /* =========================================
@@ -50,12 +50,12 @@ aside {
         top: 0;
         height: 100%;
         /* កំណត់ទំហំ Sidebar អោយសមល្មមលើទូរសព្ទ */
-        width: 260px !important; 
+        width: 260px !important;
         z-index: 100;
         transform: translateX(-100%); /* លាក់ Sidebar ចេញពីអេក្រង់ដំបូងលើទូរសព្ទ */
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     aside.mobile-open {
         transform: translateX(0) !important; /* បង្ហាញពេលចុច Menu Icon */
     }
@@ -69,107 +69,107 @@ aside {
 /* =========================================
    តារាង (Tables & Inputs)
    ========================================= */
-.grade-table th, .grade-table td, 
-.report-table th, .report-table td { 
-    border: 1px solid #d1d5db; 
-    padding: 8px 6px; 
-    text-align: center; 
-    font-size: 13px; 
+.grade-table th, .grade-table td,
+.report-table th, .report-table td {
+    border: 1px solid #d1d5db;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 13px;
     white-space: nowrap; /* ការពារអក្សរផ្ដាច់បន្ទាត់ខុសបច្ចេកទេស */
 }
 
-.grade-table th, .report-table th { 
-    background-color: #f8fafc; 
-    font-weight: 600; 
-    color: #1e293b; 
+.grade-table th, .report-table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: #1e293b;
 }
 
 /* ប្រអប់បញ្ចូលពិន្ទុឱ្យងាយស្រួលចុចលើទូរសព្ទ */
-.grade-input { 
-    width: 50px; 
+.grade-input {
+    width: 50px;
     height: 32px;
-    text-align: center; 
-    border: 1px solid #cbd5e1; 
-    border-radius: 6px; 
-    padding: 2px; 
+    text-align: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 2px;
     font-size: 14px;
 }
-.grade-input:focus { 
-    outline: none; 
-    border-color: #3b82f6; 
-    box-shadow: 0 0 0 2px #bfdbfe; 
+.grade-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px #bfdbfe;
 }
 
 /* =========================================
    តារាងវត្តមានប្រចាំខែ (Attendance Report)
    ========================================= */
-.att-input { 
-    width: 32px; 
+.att-input {
+    width: 32px;
     height: 32px;
-    text-align: center; 
-    border: none; 
-    background: transparent; 
-    font-size: 13px; 
-    font-weight: bold; 
-    text-transform: uppercase; 
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
 }
-.att-input:focus { 
-    outline: 2px solid #3b82f6; 
-    background-color: white; 
+.att-input:focus {
+    outline: 2px solid #3b82f6;
+    background-color: white;
     border-radius: 4px;
 }
 
-.weekend-col { 
-    background-color: #e5e7eb !important; 
-    color: #9ca3af; 
+.weekend-col {
+    background-color: #e5e7eb !important;
+    color: #9ca3af;
 }
 
 /* =========================================
    របាររមូរ (Custom Scrollbar for Mobile Touch)
    ========================================= */
-::-webkit-scrollbar { 
-    width: 5px; 
-    height: 5px; 
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
 }
-::-webkit-scrollbar-track { 
-    background: #f1f1f1; 
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
-::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 4px; 
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
 }
 
 /* =========================================
    ការជូនដំណឹង (Toast Notification)
    ========================================= */
 #toast {
-    visibility: hidden; 
-    min-width: 260px; 
-    background-color: #10B981; 
+    visibility: hidden;
+    min-width: 260px;
+    background-color: #10B981;
     color: #fff;
-    text-align: center; 
-    border-radius: 12px; 
-    padding: 14px; 
-    position: fixed; 
-    z-index: 4000; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    bottom: 30px; 
-    font-size: 14px; 
+    text-align: center;
+    border-radius: 12px;
+    padding: 14px;
+    position: fixed;
+    z-index: 4000;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 30px;
+    font-size: 14px;
     font-weight: 600;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
-#toast.show { 
-    visibility: visible; 
-    animation: fadein 0.4s, fadeout 0.4s 2.6s; 
+#toast.show {
+    visibility: visible;
+    animation: fadein 0.4s, fadeout 0.4s 2.6s;
 }
-@keyframes fadein { 
-    from {bottom: 0; opacity: 0;} 
-    to {bottom: 30px; opacity: 1;} 
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
 }
-@keyframes fadeout { 
-    from {bottom: 30px; opacity: 1;} 
-    to {bottom: 0; opacity: 0;} 
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
 }
 
 /* =========================================
@@ -201,28 +201,28 @@ aside {
     }
 
     body { background: white !important; font-size: 11px !important; }
-    
+
     /* លាក់ធាតុដែលមិនចាំបាច់ពេលបោះពុម្ព */
-    aside, header, .no-print, #auth-screen, #toast, .modal-backdrop, #landing-screen, #sidebar-overlay { 
-        display: none !important; 
+    aside, header, .no-print, #auth-screen, #toast, .modal-backdrop, #landing-screen, #sidebar-overlay {
+        display: none !important;
     }
-    
-    main { 
-        overflow: visible !important; 
-        height: auto !important; 
-        width: 100% !important; 
-        margin: 0 !important; 
-        padding: 0 !important; 
-        background: white !important; 
+
+    main {
+        overflow: visible !important;
+        height: auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
     }
-    
-    .print-area { 
-        display: block !important; 
-        border: none !important; 
-        box-shadow: none !important; 
-        width: 100% !important; 
-        padding: 0 !important; 
-        margin: 0 !important; 
+
+    .print-area {
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* ប្រសិនបើជាផ្ទាំង 'បញ្ចូលពិន្ទុ' ឬ 'ស្រង់វត្តមាន' ឱ្យវាប្តូរទៅ Landscape (ផ្តេក) ដោយស្វ័យប្រវត្តិ */
@@ -235,33 +235,28 @@ aside {
        /* Settings specific to the first page if needed */
     }
 
-    /* ប្រើ CSS pseudo-class សម្រាប់បង្ខំ Landscape (ជួយបាននៅលើ Browser មួយចំនួនធំ) */
-    #view-detailed-sheet, #view-attendance-report {
-         @page { size: landscape; }
-    }
-    
     /* ការកំណត់តារាងឱ្យមានស៊ុមខ្មៅច្បាស់ */
-    .grade-table th, .grade-table td, 
+    .grade-table th, .grade-table td,
     .report-table th, .report-table td,
     #monthly-results-table th, #monthly-results-table td,
-    #monthly-results-table-right th, #monthly-results-table-right td { 
-        border: 1px solid #000 !important; 
-        padding: 3px !important; 
-        font-size: 10px !important; 
+    #monthly-results-table-right th, #monthly-results-table-right td {
+        border: 1px solid #000 !important;
+        padding: 3px !important;
+        font-size: 10px !important;
         color: #000 !important;
     }
-    
-    .grade-input { 
-        border: none !important; 
-        background: transparent !important; 
+
+    .grade-input {
+        border: none !important;
+        background: transparent !important;
         height: auto !important;
         padding: 0 !important;
     }
-    
+
     /* បង្ខំឱ្យពណ៌ផ្ទៃ (Background Colors) លេចចេញមកពេល Print */
-    * { 
-        -webkit-print-color-adjust: exact !important; 
-        print-color-adjust: exact !important; 
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     /* លាក់ Footer ក្លែងក្លាយក្នុង Monthly Results ដើម្បីសន្សំទំព័រ */
@@ -289,100 +284,8 @@ aside {
 
     /* សម្រាប់ Monthly Results យើងប្រើ Grid ក្នុង JS ហើយ តែបើចង់ច្បាស់អាចបន្ថែមនេះ */
     #monthly-results-container .grid {
-        display: grid !important; 
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 15px !important;
-    }
-}
-@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap');
-
-body {
-    font-family: 'Kantumruy Pro', sans-serif;
-}
-
-.font-moul {
-    font-family: 'Moul', serif;
-}
-
-/* Toast Notification Style */
-#toast {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 12px;
-    padding: 14px;
-    position: fixed;
-    z-index: 5000;
-    right: 30px;
-    bottom: 30px;
-    font-size: 14px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-#toast.show {
-    visibility: visible;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-}
-
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
-}
-
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
-}
-
-/* Table Input Styles */
-.grade-input, .att-input {
-    width: 45px;
-    text-align: center;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    padding: 4px;
-    font-size: 13px;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.grade-input:focus, .att-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-.nav-active {
-    background-color: #eff6ff !important;
-    color: #2563eb !important;
-    font-weight: bold;
-}
-
-/* Responsive Mobile Sidebar */
-@media (max-width: 768px) {
-    #main-sidebar {
-        position: fixed;
-        left: -260px;
-        transition: left 0.3s ease;
-        height: 100%;
-        z-index: 100;
-    }
-    #main-sidebar.mobile-open {
-        left: 0;
-    }
-}
-
-/* Print Friendly Configuration */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-    body {
-        background-color: white !important;
-        overflow: visible !important;
-    }
-    #main-app {
-        height: auto !important;
     }
 }
