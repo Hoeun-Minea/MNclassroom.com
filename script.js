@@ -1331,4 +1331,25 @@ function exportTableToExcel(tableID, filename = ''){
         downloadLink.download = filename;
         downloadLink.click();
     }
+    // ==========================================
+// មុខងារពង្រីកពេញអេក្រង់ (Full Screen View)
+// ==========================================
+function toggleFullScreen() {
+    const icon = document.getElementById('fullscreen-icon');
+    if (!document.fullscreenElement) {
+        // បញ្ជាឱ្យ Browser ពង្រីកពេញអេក្រង់
+        document.documentElement.requestFullscreen().catch(err => {
+            showToast(`មិនអាចពង្រីកបានទេ: ${err.message}`);
+        });
+        // ដូររូបតំណាងទៅជា បង្រួមវិញ
+        if(icon) { icon.classList.remove('fa-expand'); icon.classList.add('fa-compress'); }
+    } else {
+        // បញ្ជាឱ្យ Browser បង្រួមមកធម្មតាវិញ
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+            // ដូររូបតំណាងទៅជា ពង្រីកវិញ
+            if(icon) { icon.classList.remove('fa-compress'); icon.classList.add('fa-expand'); }
+        }
+    }
+}
 }

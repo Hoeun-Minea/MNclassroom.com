@@ -167,23 +167,36 @@ body.sidebar-open {
 }
 
 /* =========================================
-   របាររមូរ (Custom Scrollbar for Mobile Touch)
+   រចនារបារអូស (Custom Scrollbar) សម្រាប់ចាប់អូសដោយម៉ៅ
    ========================================= */
+/* កំណត់ទំហំរបារ */
 ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-    display: none; /* លាក់ Scrollbar លើទូរសព្ទ */
+    width: 8px; /* ទំហំរបារអូសចុះឡើង (Vertical) */
+    height: 10px; /* ទំហំរបារអូសឆ្វេងស្តាំ (Horizontal) ដាក់រាងធំបន្តិចងាយចាប់អូស */
 }
+
+/* ពណ៌ផ្ទៃខាងក្រោយនៃរបារ */
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #f1f5f9; 
+    border-radius: 8px;
 }
+
+/* ពណ៌របស់ដុំរបារសម្រាប់ចាប់អូស */
 ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+    background: #cbd5e1; 
+    border-radius: 8px;
+    border: 2px solid #f1f5f9; /* ធ្វើឱ្យរបារមើលទៅរាងមូលស្អាត */
 }
+
+/* ពណ៌ពេលយកម៉ៅទៅដាក់ពីលើដុំរបារ (Hover) */
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+
+/* សម្រាប់ Firefox Browser */
 * {
-    -ms-overflow-style: none;  /* សម្រាប់ IE និង Edge */
-    scrollbar-width: none;  /* សម្រាប់ Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* =========================================
@@ -235,8 +248,7 @@ body.sidebar-open {
    ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles ស្តង់ដារ)
    ========================================= */
 @media print {
-    @page { size: A4 portrait; margin: 1cm; }
-    @page { size: A4 landscape; margin: 1cm; }
+    @page { size: A4 Auto; margin: 1cm; }
 
     /* ១. ដោះស្រាយបញ្ហា Print ចេញទំព័រទទេ ឬបាត់ទិន្នន័យ (សំខាន់បំផុត) */
     html, body, #main-app, main, .overflow-y-auto {
@@ -367,5 +379,108 @@ body.sidebar-open {
     .table-scroll-wrapper { max-height: none !important; overflow: visible !important; }
     .sticky-cols th, .sticky-cols td { position: static !important; border-right: none !important; }
 }
+/* =========================================
+   មុខងារ Sticky សម្រាប់តារាង "បញ្ជីឈ្មោះសិស្ស" (៥ កាឡោន)
+   ========================================= */
+.sticky-cols-students th:nth-child(1), .sticky-cols-students td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 40px; background-color: #fff; }
+.sticky-cols-students th:nth-child(2), .sticky-cols-students td:nth-child(2) { position: sticky; left: 40px; z-index: 10; min-width: 50px; background-color: #fff; text-align: center; }
+.sticky-cols-students th:nth-child(3), .sticky-cols-students td:nth-child(3) { position: sticky; left: 90px; z-index: 10; min-width: 80px; background-color: #fff; text-align: center;}
+.sticky-cols-students th:nth-child(4), .sticky-cols-students td:nth-child(4) { position: sticky; left: 170px; z-index: 10; min-width: 150px; background-color: #fff; }
+.sticky-cols-students th:nth-child(5), .sticky-cols-students td:nth-child(5) { position: sticky; left: 320px; z-index: 10; min-width: 50px; max-width: 50px; background-color: #fff; border-right: 2px solid #94a3b8; text-align: center; }
 
+/* ពណ៌ផ្ទៃ Hover & Zebra សម្រាប់ ៥កាឡោន */
+.sticky-cols-students tbody tr:hover td:nth-child(-n+5) { background-color: #eff6ff !important; }
+.sticky-cols-students tbody tr:nth-child(even) td:nth-child(-n+5) { background-color: #f8fafc; }
+
+/* ជ្រុងកែងលើ */
+.sticky-cols-students thead th:nth-child(-n+5) { z-index: 40 !important; background-color: #e2e8f0; }
+
+@media print {
+    .sticky-cols-students th, .sticky-cols-students td { position: static !important; border-right: none !important; }
+}
+/* =========================================
+   ធ្វើឱ្យ UI មើលទៅ Friendly, Modern & Soft
+   ========================================= */
+
+/* ១. ធ្វើឱ្យកាតធំៗ (Cards) មានស្រមោលពណ៌ខៀវស្រទន់ និងផុសស្អាត */
+.bg-white.rounded-3xl {
+    box-shadow: 0 10px 40px -10px rgba(29, 78, 216, 0.08) !important; 
+    border: 1px solid rgba(219, 234, 254, 0.6) !important;
+    transition: box-shadow 0.3s ease-in-out;
+}
+.bg-white.rounded-3xl:hover {
+    box-shadow: 0 15px 50px -10px rgba(29, 78, 216, 0.12) !important;
+}
+
+/* ២. Effect ពេលយកម៉ៅដាក់លើជួរតារាង (Table Row Bounce) ឱ្យមើលទៅរស់រវើក */
+.report-table tbody tr, .grade-table tbody tr {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.report-table tbody tr:hover, .grade-table tbody tr:hover {
+    background-color: #f0fdf4 !important; /* ដូរពណ៌ផ្ទៃទៅជាពណ៌បៃតងស្រទន់ពេល Hover */
+    transform: scale(1.002) translateY(-1px); /* លោតផុសឡើងលើ និងរីកធំបន្តិច */
+    box-shadow: 0 4px 15px -3px rgba(34, 197, 94, 0.15); /* ស្រមោលបៃតងខ្ចី */
+    z-index: 20;
+    position: relative;
+    border-radius: 8px;
+}
+
+/* ៣. ក្បាលតារាង (Table Headers) ពណ៌ស្រទន់ មិនចាំងភ្នែក */
+.report-table thead, .grade-table thead {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9) !important;
+}
+.report-table th, .grade-table th {
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.025em;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+.report-table td, .grade-table td {
+    border-color: #f1f5f9 !important; /* បន្ទាត់កាត់តារាងពណ៌ប្រផេះស្រាលបំផុត */
+}
+
+/* ៤. ប៊ូតុង និង Input (Soft Focus & Bouncy Effects) */
+input, select {
+    border-radius: 14px !important; /* ឱ្យកែងមូលខ្លាំងជាងមុន */
+    background-color: #f8fafc !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid transparent !important; /* បំបាត់បន្ទាត់ខ្មៅរឹងៗ */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02) !important;
+}
+input:focus, select:focus {
+    background-color: #ffffff !important;
+    border-color: #93c5fd !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important; /* ពន្លឺរស្មីជុំវិញ Input */
+    transform: translateY(-1px);
+}
+
+/* ធ្វើឱ្យប៊ូតុងចុចលោតៗ (Friendly Buttons) */
+button {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; /* Effect រ៉ឺស័រ */
+}
+button:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+}
+button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.98);
+}
+
+/* ៥. ធ្វើឱ្យ Sidebar Menu Hover មើលទៅស្រទន់ */
+.nav-item {
+    transition: all 0.3s ease !important;
+    border: 1px solid transparent;
+}
+.nav-item:hover:not(.nav-active) {
+    background-color: #f1f5f9;
+    padding-left: 20px !important; /* ពេល Hover រុញអក្សរទៅស្តាំបន្តិច */
+}
+.nav-active {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+    color: #1d4ed8 !important;
+    border-right: 4px solid #3b82f6 !important;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+}
 }

@@ -259,7 +259,7 @@
         <!-- Overlay សម្រាប់ Sidebar ចុច toggleSidebar -->
         <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
         
-        <!-- Sidebar Navigation (បានបន្ថែម Effect រុញចេញចូល) -->
+        <!-- Sidebar Navigation -->
         <aside id="main-sidebar" class="w-64 bg-white shadow-xl flex flex-col z-50 fixed md:relative h-screen transform -translate-x-full md:translate-x-0 md:ml-0 transition-all duration-300 ease-in-out shrink-0">
             <div class="p-4 border-b border-gray-100 bg-blue-600 text-white flex flex-col items-center">
                 <div class="text-center mb-3 pt-2">
@@ -353,79 +353,29 @@
 
         <!-- Main Workspace -->
         <main class="flex-1 flex flex-col h-screen overflow-y-auto relative bg-gray-50">
-            <!-- Mobile Optimized Header -->
-            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-20 sticky top-0 no-print w-full">
+            <!-- Mobile & Desktop Optimized Header -->
+            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-20 sticky top-0 no-print w-full transition-all">
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition focus:outline-none">
+                    <button onclick="toggleSidebar()" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition focus:outline-none" title="បិទ/បើក ម៉ឺនុយ">
                         <i class="fa-solid fa-bars text-lg"></i>
                     </button>
                     <h1 id="page-title" class="text-base md:text-lg font-bold text-gray-800 truncate max-w-[150px] md:max-w-none">Dashboard</h1>
                     <span id="header-class-badge" class="bg-blue-50 text-blue-800 font-bold px-3 py-1.5 rounded-lg text-xs hidden md:inline-block shadow-sm border border-blue-100">ថ្នាក់ទី ២ខ</span>
                 </div>
-                <button onclick="fetchStudents()" class="bg-gray-50 hover:bg-blue-50 hover:text-blue-600 px-3 md:px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold shadow-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-rotate"></i> <span class="hidden md:inline">ទាញយកទិន្នន័យ</span>
-                </button>
+                
+                <div class="flex items-center gap-2 md:gap-3">
+                    <!-- ប៊ូតុងពង្រីកពេញអេក្រង់ (Full Screen) -->
+                    <button onclick="toggleFullScreen()" class="w-10 h-10 bg-gray-50 text-gray-600 rounded-xl flex items-center justify-center hover:bg-gray-200 transition focus:outline-none border border-gray-200 shadow-sm" title="ពង្រីកពេញអេក្រង់">
+                        <i class="fa-solid fa-expand text-lg" id="fullscreen-icon"></i>
+                    </button>
+                    
+                    <button onclick="fetchStudents()" class="bg-blue-50 text-blue-600 px-3 md:px-4 py-2 rounded-xl border border-blue-200 text-sm font-bold hover:bg-blue-100 transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-rotate"></i> <span class="hidden md:inline">ទាញយកទិន្នន័យ</span>
+                    </button>
+                </div>
             </header>
 
             <div class="p-4 md:p-6 pb-24 md:pb-20">
-                <!-- ADMIN: MANAGE USERS VIEW -->
-                <div id="view-manage-users" class="hidden space-y-6">
-                    <div class="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-gray-100">
-                        <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-6 border-b border-gray-100 pb-4 gap-4">
-                            <h2 class="text-lg md:text-xl font-bold text-gray-800"><i class="fa-solid fa-users-cog text-purple-600 mr-2"></i> គ្រប់គ្រងគណនី</h2>
-                            <button onclick="fetchUsers()" class="w-full md:w-auto bg-purple-50 text-purple-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-purple-100 transition shadow-sm">
-                                <i class="fa-solid fa-rotate mr-1"></i> ទាញយកទិន្នន័យ
-                            </button>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-gray-200">
-                            <table class="w-full text-sm text-left text-gray-600">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200 whitespace-nowrap">
-                                    <tr>
-                                        <th class="px-4 py-3 text-center">ល.រ</th>
-                                        <th class="px-4 py-3">គណនី (Username)</th>
-                                        <th class="px-4 py-3">ពាក្យសម្ងាត់</th>
-                                        <th class="px-4 py-3">ឈ្មោះគ្រូបង្រៀន</th>
-                                        <th class="px-4 py-3 text-center">ថ្នាក់ទទួលបន្ទុក</th>
-                                        <th class="px-4 py-3 text-center">សកម្មភាព</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="manage-users-tbody" class="divide-y divide-gray-100 whitespace-nowrap"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SETTINGS VIEW -->
-                <div id="view-settings" class="hidden space-y-6">
-                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-8 max-w-2xl mx-auto">
-                        <h2 class="text-lg md:text-xl font-bold text-gray-800 border-b border-gray-100 pb-4 mb-6"><i class="fa-solid fa-gear text-blue-600 mr-2"></i> ការកំណត់ព័ត៌មានទូទៅ</h2>
-                        <form onsubmit="saveSettings(event)" class="space-y-4 md:space-y-5">
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">ឈ្មោះសាលារៀន</label>
-                                <input type="text" id="set-school" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">ឆ្នាំសិក្សា</label>
-                                <input type="text" id="set-year" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" placeholder="ឧ: ២០២៦-២០២៧" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">គោត្តនាម និងនាម (នាយកសាលា)</label>
-                                <input type="text" id="set-principal" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" required>
-                            </div>
-                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-6">
-                                <p class="text-xs md:text-sm text-blue-800 font-bold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> ចំណាំ៖</p>
-                                <p class="text-[11px] md:text-xs text-blue-700 leading-relaxed">ឈ្មោះគ្រូបន្ទុកថ្នាក់ត្រូវបានទាញយកដោយស្វ័យប្រវត្តិពី <b>គណនីដែលលោកគ្រូកំពុង Login បច្ចុប្បន្ន</b>។</p>
-                            </div>
-                            <div class="pt-6 mt-2 border-t border-gray-100 text-right">
-                                <button type="submit" id="btn-save-set" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-lg">
-                                    <i class="fa-solid fa-floppy-disk mr-2"></i> រក្សាទុកការកំណត់
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- 1. DASHBOARD VIEW -->
                 <div id="view-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -513,8 +463,9 @@
                                     <button onclick="window.print()" class="flex-1 md:flex-none bg-gray-800 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold hover:bg-black transition shadow-sm"><i class="fa-solid fa-file-pdf md:mr-1"></i> <span class="hidden md:inline">Print</span></button>
                                 </div>
                             </div>
-                            <div class="border border-gray-200 rounded-xl overflow-hidden">
-                                <table id="manage-students-table" class="w-full text-sm text-left text-gray-600 report-table">
+                            
+                            <div class="table-scroll-wrapper border border-gray-200 rounded-xl pb-2">
+                                <table id="manage-students-table" class="w-full text-sm text-left text-gray-600 report-table sticky-cols-students">
                                     <thead class="text-[10px] md:text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200 whitespace-nowrap">
                                         <tr>
                                             <th class="px-2 md:px-4 py-3 border-r text-center w-10">ល.រ</th>
@@ -562,7 +513,6 @@
                             </div>
                         </div>
 
-                        <!-- ប្តូរ Class Wrapper និងថែម class "sticky-cols" ទៅក្នុង Table -->
                         <div class="table-scroll-wrapper pb-4">
                             <table id="attendance-report-table" class="report-table w-full whitespace-nowrap rounded-lg border-collapse sticky-cols">
                                 <thead class="bg-gray-50">
@@ -643,7 +593,6 @@
                             </div>
                         </div>
                         
-                        <!-- ប្តូរ Class Wrapper និងថែម class "sticky-cols" ទៅក្នុង Table -->
                         <div class="table-scroll-wrapper pb-4">
                             <table class="grade-table w-full whitespace-nowrap rounded-lg border-collapse sticky-cols" id="official-grade-table">
                                 <thead class="text-[10px] md:text-xs">
