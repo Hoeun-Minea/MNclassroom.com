@@ -172,8 +172,6 @@ body.sidebar-open {
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
-    scroll-margin-left: 20px;
-    flex-shrink: 0;
     display: none; /* លាក់ Scrollbar លើទូរសព្ទ */
 }
 ::-webkit-scrollbar-track {
