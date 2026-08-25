@@ -311,6 +311,61 @@ body.sidebar-open {
 
     .print-hide-stats { display: none !important; }
 
+/* =========================================
+   មុខងារ Scroll លើ-ក្រោម ឆ្វេង-ស្តាំ និង Sticky
+   ========================================= */
+.table-scroll-wrapper {
+    max-height: 65vh; /* កំណត់កម្ពស់តារាងឱ្យ Scroll ឡើងចុះ */
+    overflow-x: auto; /* អនុញ្ញាតឱ្យ Scroll ឆ្វេងស្តាំ */
+    overflow-y: auto; /* អនុញ្ញាតឱ្យ Scroll លើក្រោម */
+    position: relative;
+    border-radius: 0.5rem;
+}
 
-    
+/* ១. រក្សាក្បាលតារាង (Title) ឱ្យនៅទ្រឹងជាប់ខាងលើ */
+.table-scroll-wrapper thead {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+.table-scroll-wrapper thead th {
+    background-color: #f8fafc; /* ពណ៌ក្បាលតារាង */
+    box-shadow: inset 0 -1px 0 #cbd5e1;
+}
+
+/* ២. រក្សាជួរឈរ ៣ ដំបូង (ល.រ, ឈ្មោះ, ភេទ) ឱ្យនៅទ្រឹងជាប់ខាងឆ្វេង */
+.sticky-cols th:nth-child(1), .sticky-cols td:nth-child(1) {
+    position: sticky; left: 0; z-index: 10; min-width: 40px; max-width: 40px; background-color: #fff;
+}
+.sticky-cols th:nth-child(2), .sticky-cols td:nth-child(2) {
+    position: sticky; left: 40px; z-index: 10; min-width: 150px; background-color: #fff;
+}
+.sticky-cols th:nth-child(3), .sticky-cols td:nth-child(3) {
+    position: sticky; left: 190px; z-index: 10; min-width: 50px; max-width: 50px; background-color: #fff;
+    border-right: 2px solid #94a3b8; /* បន្ទាត់ដិតពណ៌ប្រផេះខណ្ឌឱ្យដឹងថាមាន Scroll */
+}
+
+/* ពណ៌ផ្ទៃពេល Hover និង ជួរឆ្លាស់គ្នា (Zebra Stripes) ដើម្បីកុំឱ្យថ្លាមើលធ្លុះ */
+.sticky-cols tbody tr:hover td:nth-child(1),
+.sticky-cols tbody tr:hover td:nth-child(2),
+.sticky-cols tbody tr:hover td:nth-child(3) { background-color: #eff6ff !important; }
+
+.sticky-cols tbody tr:nth-child(even) td:nth-child(1),
+.sticky-cols tbody tr:nth-child(even) td:nth-child(2),
+.sticky-cols tbody tr:nth-child(even) td:nth-child(3) { background-color: #f8fafc; }
+
+/* ៣. ជ្រុងកែងក្បាលតារាង (កែងឆ្វេងលើ) ត្រូវស្ថិតនៅខ្ពស់ជាងគេបាំងគេទាំងអស់ */
+.sticky-cols thead th:nth-child(1),
+.sticky-cols thead th:nth-child(2),
+.sticky-cols thead th:nth-child(3) {
+    z-index: 40 !important;
+    background-color: #e2e8f0; 
+}
+
+/* បិទមុខងារ Scroll ពេល Print ក្រដាសចេញមកក្រៅ */
+@media print {
+    .table-scroll-wrapper { max-height: none !important; overflow: visible !important; }
+    .sticky-cols th, .sticky-cols td { position: static !important; border-right: none !important; }
+}
+
 }
