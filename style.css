@@ -205,9 +205,10 @@ body.sidebar-open {
     font-size: 14px;
     font-weight: 600;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    animation: ease-in-out
 }
 #toast.show {
-    visibility: now visible;
+    visibility: visible;
     animation: fadein 0.4s, fadeout 0.4s 2.6s;
 }
 #toast.hide {
@@ -225,41 +226,31 @@ body.sidebar-open {
 
 /* ពណ៌ Highlight នៅលើ Sidebar Nav */
 .nav-active {
-    background-color: #eff6ff !important;
+    background-color: linear-gradient(to right, #eff6ff, #3189c4) !important;
     color: #2563eb !important;
-    font-weight: bold;
+    font-weight: bold   
 }
 
 /* =========================================
-   ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles & CR80 ID Card)
+   ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles ស្តង់ដារ)
    ========================================= */
 @media print {
-    @page {
-        size: A4 portrait;
-        margin: 1.5cm 1cm 1.5cm 1.5cm; /* លើ: 1.5cm, ស្តាំ: 1cm, ក្រោម: 1.5cm, ឆ្វេង: 1.5cm */
+    @page { size: A4 portrait; margin: 1cm; }
+    @page { size: A4 landscape; margin: 1cm; }
+
+    /* ១. ដោះស្រាយបញ្ហា Print ចេញទំព័រទទេ ឬបាត់ទិន្នន័យ (សំខាន់បំផុត) */
+    html, body, #main-app, main, .overflow-y-auto {
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
     }
-    
-    /* ... (កូដផ្សេងៗរក្សាទុកដដែល) ... */
-    
-    /* បន្ថែមចំណុចនេះដើម្បីលាក់បន្ទាត់គែមតារាងស្ថិតិពេលព្រីន */
-    .print-hide-stats { display: none !important; }
 
-    body { background: white !important; font-size: 11px !important; }
-
-    /* លាក់ធាតុដែលមិនចាំបាច់ពេលបោះពុម្ព */
+    /* ២. លាក់របស់ដែលមិនចាំបាច់ពេលព្រីន */
     aside, header, .no-print, #auth-screen, #toast, .modal-backdrop, #landing-screen, #sidebar-overlay {
         display: none !important;
     }
 
-    main {
-        overflow: visible !important;
-        height: auto !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-    }
-
+    /* ៣. ការកំណត់ទម្រង់ Print ទូទៅ */
     .print-area {
         display: block !important;
         border: none !important;
@@ -269,73 +260,47 @@ body.sidebar-open {
         margin: 0 !important;
     }
 
-    /* បង្ខំឱ្យ Browser ព្រីនចេញពណ៌ Background (សំខាន់បំផុតសម្រាប់កាត និងតារាង) */
+    /* បង្ខំឱ្យ Browser ព្រីនចេញពណ៌ Background */
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     /* =========================================
-       ១. ការកំណត់កាតសិស្ស (CR80 ID Card Print)
+       ៤. ការកំណត់កាតសិស្ស (ID Card) ជា ២ជួរ
        ========================================= */
-    
-    /* ពេលព្រីនកាត ត្រូវលាក់អ្វីៗផ្សេងទាំងអស់ ទុកតែកាត */
-    #view-id-card.print-area {
-        margin: 0 !important;
-        padding: 0 !important;
+    #all-id-cards-container {
+        display: grid !important;
+        grid-template-columns: repeat(2, 85.6mm) !important;
+        gap: 5mm 10mm !important;
+        justify-content: center !important;
+        width: 100% !important;
+        padding-top: 10mm !important;
     }
 
-    #id-card-print-area {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        /* ទំហំស្តង់ដារ CR80 (85.6mm x 53.98mm) */
+    .id-card-box {
         width: 85.6mm !important;
         height: 53.98mm !important;
-        max-width: 85.6mm !important;
-        max-height: 53.98mm !important;
-        /* បន្ទាត់ដាច់ៗពណ៌ប្រផេះ ងាយស្រួលកាត់កាត */
-        border: 1px dashed #9ca3af !important; 
-        border-radius: 0 !important; /* លុបស៊ុមកោងពេលព្រីន ដើម្បីងាយកាត់ */
+        border: 1px dashed #9ca3af !important; /* បន្ទាត់ដាច់ៗសម្រាប់កាត់ */
+        page-break-inside: avoid !important; /* ការពារកុំឱ្យដាច់កាតពាក់កណ្តាលទំព័រ */
+        break-inside: avoid !important;
         box-shadow: none !important;
-        transform: scale(1) !important; /* ការពារមិនឱ្យទូរសព្ទ/កុំព្យូទ័របង្រួមទំហំ */
-        page-break-inside: avoid !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* =========================================
-       ២. ការកំណត់តារាងលទ្ធផល (MoEYS Standard)
+       ៥. ការកំណត់តារាងស្តង់ដារក្រសួង (MoEYS)
        ========================================= */
     #view-detailed-sheet .print-area,
-    #view-attendance-report .print-area {
-        page-break-before: always;
-    }
-
-    .moeys-table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
-    .moeys-table th {
-        background-color: #1e3a8a !important; /* ពណ៌ខៀវក្រម៉ៅ */
-        color: #ffffff !important;
-        font-family: 'Kantumruy Pro', sans-serif !important;
-        font-weight: bold !important;
-        border: 1px solid #0f172a !important;
-        padding: 8px 4px !important;
-        text-align: center;
-        font-size: 11px !important;
-    }
-    .moeys-table td {
-        border: 1px solid #64748b !important;
-        padding: 6px 4px !important;
-        color: #000000 !important;
-        font-size: 11px !important;
-    }
+    #view-attendance-report .print-area { page-break-before: always; }
     
+    .moeys-table { width: 100% !important; border-collapse: collapse !important; }
+    .moeys-table th { background-color: #1e3a8a !important; color: #ffffff !important; font-family: 'Kantumruy Pro', sans-serif !important; font-weight: bold !important; border: 1px solid #0f172a !important; padding: 8px 4px !important; text-align: center; font-size: 11px !important; }
+    .moeys-table td { border: 1px solid #64748b !important; padding: 6px 4px !important; color: #000000 !important; font-size: 11px !important; }
     .moeys-table tbody tr:nth-child(even) td { background-color: #f0fdf4 !important; }
     .moeys-table tbody tr:nth-child(odd) td { background-color: #ffffff !important; }
-
+    
     .print-text-red { color: #dc2626 !important; }
     .print-text-blue { color: #2563eb !important; }
     .print-text-green { color: #16a34a !important; }
@@ -344,6 +309,8 @@ body.sidebar-open {
     .grade-table td, .report-table td { border: 1px solid #000 !important; padding: 4px !important; font-size: 10px !important; color: #000 !important; }
     .grade-input { border: none !important; background: transparent !important; height: auto !important; padding: 0 !important; }
 
-    #view-monthly-results .bg-gray-50.p-5 { display: none !important; }
-    #monthly-results-container .grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 15px !important; }
+    .print-hide-stats { display: none !important; }
+
+
+    
 }

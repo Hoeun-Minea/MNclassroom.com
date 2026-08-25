@@ -4,7 +4,7 @@
  * ========================================================================
  */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyZHCwohjx-z0t5uReHIfkFKnqmfSl62C2ag9jUrSKAXt51dzwYMbylQaEGfY1FsSnD2w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz077s0huaxEphGM735iLP8xJ0JhH90-WUHRf7MbSD4h--iB4xbQoBwjevo45x-PpMTeg/exec";
 
 // អថេរគោលសម្រាប់គ្រប់គ្រងប្រព័ន្ធ (App State)
 const AppState = {
@@ -256,6 +256,9 @@ function refreshClassData() {
     updateAllViews();
 }
 
+// ==========================================
+// មុខងារពេលជ្រើសរើសថ្នាក់រៀន
+// ==========================================
 function handleClassChange() {
     let level = document.getElementById('filter-level').value;
     let room = document.getElementById('filter-room').value;
@@ -264,6 +267,11 @@ function handleClassChange() {
     updateClassDisplayUI();
     refreshClassData();
     fetchAttendanceReport();
+
+    const aside = document.getElementById('main-sidebar');
+    if(aside && aside.classList.contains('mobile-open')) {
+        toggleMobileSidebar();
+    }
 }
 
 function updateAllViews() {
@@ -281,31 +289,58 @@ function updateAllViews() {
 // ==========================================
 async function fetchUsers() {
     if (AppState.loggedInUsername !== 'admin') return;
+    
+    const tbody = document.getElementById('manage-users-tbody');
+    if(tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងទាញយកទិន្នន័យ...</td></tr>';
+
     try {
         const result = await fetchAPI({ action: 'get_users' });
+        
+        // ឆែកមើលលទ្ធផលដែលទទួលបានពី Server
         if(result.status === "success") {
             AppState.usersDb = result.data;
             renderUsersTable();
+        } else {
+            // បើកូដ Server ឆ្លើយតបថា Error (ឧ. មិនស្គាល់សកម្មភាពនេះទេ)
+            alert("បញ្ហាពី Server: " + result.message);
+            if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">${result.message}</td></tr>`;
         }
-    } catch (error) { showToast("បរាជ័យក្នុងការទាញយកគណនីគ្រូ!"); }
+    } catch (error) { 
+        alert("បរាជ័យក្នុងការតភ្ជាប់ទាញយកគណនី!");
+        if(tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">បរាជ័យក្នុងការតភ្ជាប់ទៅកាន់ Server!</td></tr>';
+    }
 }
-
 function renderUsersTable() {
     const tbody = document.getElementById('manage-users-tbody');
     if(!tbody) return;
     tbody.innerHTML = '';
+    
+    if(!AppState.usersDb || AppState.usersDb.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">មិនទាន់មានគណនីគ្រូនៅក្នុងប្រព័ន្ធទេ</td></tr>';
+        return;
+    }
+
     AppState.usersDb.forEach((u, idx) => {
-        let roleBadge = u.username.toLowerCase() === 'admin' ? '<span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold ml-2">Admin</span>' : '<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold ml-2">Teacher</span>';
+        // បម្លែងទៅជា String ដើម្បីការពារ Error ពេលមានអ្នកវាយលេខចូលក្នុង Sheet
+        let uName = String(u.username || "");
+        let uPass = String(u.password || "");
+        let fName = String(u.name || "");
+        let aClass = String(u.assigned_class || "ទូទៅ");
+
+        let roleBadge = uName.toLowerCase() === 'admin' 
+            ? '<span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold ml-2">Admin</span>' 
+            : '<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold ml-2">Teacher</span>';
+        
         tbody.innerHTML += `
             <tr class="bg-white border-b hover:bg-gray-50">
                 <td class="px-6 py-4 text-center">${idx + 1}</td>
-                <td class="px-6 py-4 font-bold text-gray-800">${u.username} ${roleBadge}</td>
-                <td class="px-6 py-4 font-mono text-gray-500">${u.password}</td>
-                <td class="px-6 py-4 font-bold text-blue-700">${u.name}</td>
-                <td class="px-6 py-4 text-center font-bold text-green-600">${u.assigned_class || 'ទូទៅ'}</td>
+                <td class="px-6 py-4 font-bold text-gray-800">${uName} ${roleBadge}</td>
+                <td class="px-6 py-4 font-mono text-gray-500">${uPass}</td>
+                <td class="px-6 py-4 font-bold text-blue-700">${fName}</td>
+                <td class="px-6 py-4 text-center font-bold text-green-600">${aClass}</td>
                 <td class="px-6 py-4 text-center">
-                    <button onclick="openEditUserModal('${u.username}')" class="text-blue-600 hover:text-blue-800 mx-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                    ${u.username.toLowerCase() !== 'admin' ? `<button onclick="deleteUserAccount('${u.username}')" class="text-red-500 hover:text-red-700 mx-1"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <button onclick="openEditUserModal('${uName}')" class="text-blue-600 hover:text-blue-800 mx-1" title="កែប្រែ"><i class="fa-solid fa-pen-to-square"></i></button>
+                    ${uName.toLowerCase() !== 'admin' ? `<button onclick="deleteUserAccount('${uName}')" class="text-red-500 hover:text-red-700 mx-1" title="លុប"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </td>
             </tr>
         `;
@@ -361,11 +396,13 @@ async function deleteUserAccount(username) {
 }
 
 // ==========================================
-// គ្រប់គ្រងសិស្ស (MANAGE STUDENTS)
+// គ្រប់គ្រងសិស្ស (MANAGE STUDENTS & PHOTO UPLOAD)
 // ==========================================
 async function processAndUploadImage(fileInputId) {
     const fileInput = document.getElementById(fileInputId);
-    if (!fileInput.files || fileInput.files.length === 0) return "";
+    
+    // បន្ថែម !fileInput ដើម្បីការពារ Error ពេលរកប្រអប់អត់ឃើញ
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return "";
     
     const file = fileInput.files[0];
     const base64Data = await new Promise((resolve) => {
@@ -374,7 +411,7 @@ async function processAndUploadImage(fileInputId) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 400; canvas.height = 600; // ទំហំ 4x6 Aspect Ratio
+                canvas.width = 400; canvas.height = 600; // ទំហំ 4x6
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
@@ -410,7 +447,7 @@ async function addStudent(e) {
     };
 
     if(AppState.currentClassDb.find(s => s.id === payload.id)) {
-        btn.disabled = false; btn.innerHTML = 'រក្សាទុក';
+        btn.disabled = false; btn.innerHTML = 'រក្សាទុកសិស្ស';
         return alert("អត្តលេខនេះមានរួចហើយក្នុងថ្នាក់នេះ!");
     }
 
@@ -835,10 +872,10 @@ function renderMonthlyResults() {
             <tr>
                 <th class="border border-blue-900 p-2 w-10 text-[10px] md:text-xs text-center">ល.រ</th>
                 <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center hidden md:table-cell print:table-cell">អត្តលេខ</th>
-                <th class="border border-blue-900 p-2 w-32 text-left text-[10px] md:text-xs">គោត្តនាម និងនាម</th>
+                <th class="border border-blue-900 p-2 text-left text-[10px] md:text-xs">គោត្តនាម និងនាម</th>
                 <th class="border border-blue-900 p-2 w-10 text-[10px] md:text-xs text-center">ភេទ</th>
                 <th class="border border-blue-900 p-2 w-14 text-[10px] md:text-xs text-center">មធ្យមភាគ</th>
-                <th class="border border-blue-900 p-2 w-20 text-[10px] md:text-xs text-center">ចំណាត់ថ្នាក់</th>
+                <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center">ចំណាត់ថ្នាក់</th>
                 <th class="border border-blue-900 p-2 w-14 text-[10px] md:text-xs text-center">និទ្ទេស</th>
                 <th class="border border-blue-900 p-2 w-16 text-[10px] md:text-xs text-center print:table-cell hidden">ផ្សេងៗ</th>
             </tr>
@@ -855,14 +892,14 @@ function renderMonthlyResults() {
         
         let rowItem = `
             <tr class="${zebraClass} hover:bg-blue-100 transition-colors">
-                <td class="p-1.5 border border-slate-500 text-center text-[10px] md:text-xs font-medium text-gray-700">${idx + 1}</td>
-                <td class="p-1.5 border border-slate-500 text-center text-gray-500 text-[10px] md:text-xs hidden md:table-cell print:table-cell">${s.id}</td>
-                <td class="p-1.5 border border-slate-500 text-left font-bold text-gray-800 text-[11px] md:text-xs md:table-cell print:table-cell">${s.name}</td>
-                <td class="p-1.5 border border-slate-500 text-center text-[10px] md:text-xs font-bold ${s.gender === 'ស' ? 'text-pink-600 print-text-red' : 'text-blue-600 print-text-blue'}">${s.gender}</td>
-                <td class="p-1.5 border border-slate-500 text-center font-bold text-blue-700 print-text-blue text-[10px] md:text-xs">${sc.avg || 0}</td>
-                <td class="p-1.5 border border-slate-500 text-center font-bold text-red-600 print-text-red text-[10px] md:text-xs">${sc.rank}</td>
-                <td class="p-1.5 border border-slate-500 text-center font-bold text-green-600 print-text-green text-[10px] md:text-xs">${sc.grade || '-'}</td>
-                <td class="p-1.5 border border-slate-500 text-center text-[10px] print:table-cell hidden"></td>
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] md:text-xs font-medium text-gray-700">${idx + 1}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-gray-500 text-[10px] md:text-xs hidden md:table-cell print:table-cell">${s.id}</td>
+                <td class="p-1.5 border border-slate-300 text-left font-bold text-gray-800 text-[11px] md:text-xs">${s.name}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] md:text-xs font-bold ${s.gender === 'ស' ? 'text-pink-600 print-text-red' : 'text-blue-600 print-text-blue'}">${s.gender}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-blue-700 print-text-blue text-[10px] md:text-xs">${sc.avg || 0}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-red-600 print-text-red text-[10px] md:text-xs">${sc.rank}</td>
+                <td class="p-1.5 border border-slate-300 text-center font-bold text-green-600 print-text-green text-[10px] md:text-xs">${sc.grade || '-'}</td>
+                <td class="p-1.5 border border-slate-300 text-center text-[10px] print:table-cell hidden"></td>
             </tr>
         `;
         
@@ -986,7 +1023,6 @@ function renderLeaderboard() {
                     <th class="text-left px-4">ឈ្មោះសិស្ស</th>
                     <th class="w-16 md:w-20">ភេទ</th>
                     <th class="w-24 md:w-32">មធ្យមភាគ</th>
-                    <th class="w-24 md:w-32">ចំណាត់ថ្នាក់</th>
                     <th class="w-20 md:w-24">និទ្ទេស</th>
                 </tr>
             </thead>
@@ -1007,7 +1043,6 @@ function renderLeaderboard() {
                 <td class="text-left px-4 font-bold text-gray-800">${s.name}</td>
                 <td class="text-center font-bold ${s.gender === 'ស' ? 'text-pink-600 print-text-red' : 'text-blue-600 print-text-blue'}">${s.gender}</td>
                 <td class="text-center font-bold text-blue-700 print-text-blue text-sm md:text-lg">${sc.avg}</td>
-                <td class="text-center font-bold text-red-600 print-text-red">${sc.rank}</td>
                 <td class="text-center font-bold text-green-600 print-text-green">${sc.grade}</td>
             </tr>
         `;
@@ -1051,12 +1086,19 @@ function populateProfileDropdown() {
     const currentVal3 = document.getElementById('id-student-select') ? document.getElementById('id-student-select').value : '';
     
     let optionsHtml = '<option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>';
+    let idOptionsHtml = '<option value="">ទាំងអស់ (All Students)</option>'; // បន្ថែមជម្រើស "ទាំងអស់" សម្រាប់កាតសិស្ស
+    
     const sorted = [...AppState.currentClassDb].sort((a,b) => a.name.localeCompare(b.name, 'km'));
-    sorted.forEach(s => { optionsHtml += `<option value="${s.id}">${s.name} (${s.gender})</option>`; });
+    
+    sorted.forEach(s => { 
+        let opt = `<option value="${s.id}">${s.name} (${s.gender})</option>`;
+        optionsHtml += opt; 
+        idOptionsHtml += opt;
+    });
 
     if(document.getElementById('profile-student-select')) { document.getElementById('profile-student-select').innerHTML = optionsHtml; if(currentVal1) document.getElementById('profile-student-select').value = currentVal1; }
     if(document.getElementById('tracking-student-select')) { document.getElementById('tracking-student-select').innerHTML = optionsHtml; if(currentVal2) document.getElementById('tracking-student-select').value = currentVal2; }
-    if(document.getElementById('id-student-select')) { document.getElementById('id-student-select').innerHTML = optionsHtml; if(currentVal3) document.getElementById('id-student-select').value = currentVal3; }
+    if(document.getElementById('id-student-select')) { document.getElementById('id-student-select').innerHTML = idOptionsHtml; if(currentVal3) document.getElementById('id-student-select').value = currentVal3; }
 }
 
 function renderStudentProfile() {
@@ -1129,29 +1171,88 @@ function generateTrackingBook() {
 }
 
 // ----------------------------------------------------
-// បង្កើតកាតសិស្ស CR80
+// បង្កើតកាតសិស្ស CR80 ទាំងអស់
 // ----------------------------------------------------
 function renderIDCard() {
-    const id = document.getElementById('id-student-select').value; if(!id) return;
-    const s = AppState.currentClassDb.find(x => x.id === id);
+    const id = document.getElementById('id-student-select').value; 
+    const container = document.getElementById('all-id-cards-container');
+    if(!container) return;
+    container.innerHTML = '';
     
-    document.getElementById('card-id').textContent = s.id; 
-    document.getElementById('card-name').textContent = s.name;
-    document.getElementById('card-gender').textContent = s.gender; 
-    document.getElementById('card-class').textContent = s.class_name;
-    document.getElementById('card-dob').textContent = s.dob; 
-    document.getElementById('card-pob').textContent = s.pob;
-    document.getElementById('card-parents').textContent = `${s.father || ''} / ${s.mother || ''}`;
-    
-    let t = new Date(); 
-    document.getElementById('card-date').textContent = `${String(t.getDate()).padStart(2,'0')}-${String(t.getMonth()+1).padStart(2,'0')}-${t.getFullYear()}`;
-    
-    const photoEl = document.getElementById('card-photo'), placeholder = document.getElementById('card-photo-placeholder');
-    if(s.photo) { 
-        photoEl.src = s.photo; photoEl.classList.remove('hidden'); placeholder.classList.add('hidden'); 
-    } else { 
-        photoEl.classList.add('hidden'); placeholder.classList.remove('hidden'); 
+    let studentsToRender = [];
+    if(id) {
+        const s = AppState.currentClassDb.find(x => x.id === id);
+        if(s) studentsToRender.push(s);
+    } else {
+        studentsToRender = [...AppState.currentClassDb].sort((a,b) => a.name.localeCompare(b.name, 'km'));
     }
+
+    if(studentsToRender.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center w-full py-10 font-bold">មិនទាន់មានសិស្សក្នុងថ្នាក់នេះទេ</p>';
+        return;
+    }
+
+    let t = new Date(); 
+    let dateStr = `${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;
+    let cardsHtml = '';
+
+    studentsToRender.forEach(s => {
+        let photoHtml = s.photo 
+            ? `<img src="${s.photo}" class="w-full h-full object-cover">` 
+            : `<span class="text-gray-400 text-[10px] font-sans absolute inset-0 flex items-center justify-center">4x6</span>`;
+
+        // ចំណាំ៖ ប្រើ class "id-card-box" ជំនួស print-area
+        cardsHtml += `
+            <div class="id-card-box relative bg-white overflow-hidden shrink-0 shadow-sm print:shadow-none" style="width: 85.6mm; height: 53.98mm; box-sizing: border-box;">
+                <div class="absolute top-0 left-0 w-full h-[11mm] bg-blue-500" style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></div>
+                <div class="relative z-10 flex items-center justify-between px-[3mm] pt-[1.5mm]">
+                    <div class="w-[9mm] h-[9mm] bg-white rounded-full flex items-center justify-center shadow-sm"><i class="fa-solid fa-school text-blue-800 text-[10px]"></i></div>
+                    <div class="text-center text-white flex-1 leading-tight">
+                        <p class="font-moul text-[7px] sys-school">${AppState.sysSettings.school_name || 'សាលាបឋមសិក្សា'}</p>
+                        <p class="text-[5px] font-bold tracking-widest mt-[0.5mm] uppercase font-sans">Primary School</p>
+                    </div>
+                    <div class="w-[9mm]"></div>
+                </div>
+                
+                <div class="text-center mt-[1.5mm] mb-[1mm]">
+                    <p class="font-moul text-[9px] text-blue-900 tracking-wide">កាតសម្គាល់ខ្លួនសិស្ស</p>
+                </div>
+                
+                <div class="flex px-[3.5mm] gap-[3mm]">
+                    <div class="w-[20mm] h-[26.6mm] bg-gray-100 border border-gray-300 rounded flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                        ${photoHtml}
+                    </div>
+                    <div class="flex-1 text-[7px] font-bold text-gray-800 leading-tight space-y-[1.2mm] font-siemreap mt-[0.5mm]">
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">អត្តលេខ</span> <span class="text-red-600">: <span class="font-sans">${s.id}</span></span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ឈ្មោះ</span> <span class="font-moul text-[7.5px]">: ${s.name}</span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ភេទ</span> : ${s.gender} <span class="text-blue-800 ml-[1.5mm]">ថ្នាក់ទី</span> : <span class="text-red-600 font-sans">${s.class_name}</span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ថ្ងៃកំណើត</span> : <span class="font-sans">${s.dob || '-'}</span></p>
+                        <p class="truncate"><span class="text-blue-800 w-[11.5mm] inline-block">ទីលំនៅ</span> : ${s.pob || '-'}</p>
+                        <p class="truncate"><span class="text-blue-800 w-[11.5mm] inline-block">មាតាបិតា</span> : ${s.father || ''} / ${s.mother || ''}</p>
+                    </div>
+                </div>
+                
+                <div class="absolute bottom-[2mm] w-full px-[3.5mm] flex justify-between items-end">
+                    <div class="text-[5.5px] font-bold text-gray-600 leading-tight font-siemreap pb-[1mm]">
+                        <p>បញ្ជាក់៖ ជាសិស្សនៅសាលាខាងលើពិតប្រាកដមែន។</p>
+                        <p class="mt-[0.5mm] text-blue-800">ឆ្នាំសិក្សា៖ <span class="font-sans">${AppState.sysSettings.academic_year || ''}</span></p>
+                    </div>
+                    <div class="text-center font-bold text-gray-800 text-[5.5px] leading-tight font-siemreap">
+                        <p class="font-sans">កាលបរិច្ឆេទ ${dateStr}</p>
+                        <p class="font-moul mt-[1.5mm] text-[6px] sys-principal">${AppState.sysSettings.principal_title || 'នាយកសាលា'}</p>
+                        <p class="mt-[4mm] border-t border-dotted border-gray-600 w-[18mm] mx-auto"></p>
+                    </div>
+                </div>
+                
+                <!-- ឡូហ្គោព្រាលៗផ្នែកខាងក្រោយ -->
+                <div class="absolute bottom-0 w-full opacity-10 z-0 pointer-events-none"> 
+                    <img src="7.png" class="w-full object-contain" onerror="this.style.display='none'">
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = cardsHtml;
 }
 
 // Navigation Tabs Handling
