@@ -1295,15 +1295,20 @@ function switchTab(tabId) {
     }
 }
 
-function toggleMobileSidebar() {
+// ==========================================
+// មុខងារគ្រប់គ្រងប៊ូតុង ៣បន្ទាត់ (លាក់/បង្ហាញ Sidebar)
+// ==========================================
+function toggleSidebar() {
     const aside = document.getElementById('main-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    const isOpen = aside.classList.toggle('mobile-open');
-    if(overlay) overlay.classList.toggle('hidden', !isOpen);
-    if(isOpen) {
-        document.body.classList.add('sidebar-open');
+    
+    if (window.innerWidth < 768) {
+        // សម្រាប់ទូរសព្ទដៃ (រុញ Sidebar បង្ហាញ)
+        aside.classList.toggle('-translate-x-full');
+        if(overlay) overlay.classList.toggle('hidden');
     } else {
-        document.body.classList.remove('sidebar-open');
+        // សម្រាប់កុំព្យូទ័រ (លាក់ Sidebar ទៅឆ្វេង និងពង្រីក Workspace ពេញអេក្រង់)
+        aside.classList.toggle('md:-ml-64');
     }
 }
 

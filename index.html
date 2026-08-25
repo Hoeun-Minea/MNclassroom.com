@@ -192,11 +192,12 @@
         </div>
     </div>
 
-    <!-- MODALS (Edit Student & Edit Admin) -->
+    <!-- Edit Student Modal -->
     <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center modal-backdrop backdrop-blur-sm px-4">
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg p-5 md:p-6 max-h-[95vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
                 <h3 class="text-base md:text-lg font-bold text-gray-800"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i> កែប្រែព័ត៌មានសិស្ស</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-red-500 text-xl transition w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="edit-student-form" onsubmit="submitEditStudent(event)" class="space-y-3">
                 <input type="hidden" id="edit-old-id">
@@ -237,19 +238,14 @@
                         <input type="text" id="edit-father" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none">
                     </div>
                 </div>
-                <!-- កូដចាស់ (ឈ្មោះម្តាយ) -->
                 <div>
                     <label class="text-xs font-semibold text-gray-600 block mb-1">ឈ្មោះម្តាយ</label>
                     <input type="text" id="edit-mother" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none">
                 </div>
-
-                <!-- បន្ថែមកូដនេះ (ប្តូររូបថត) -->
                 <div>
                     <label class="text-xs font-semibold text-gray-600 block mb-1">ប្តូររូបថតថ្មី (ទុកទទេបើមិនចង់ប្តូរ)</label>
                     <input type="file" id="edit-photo" accept="image/*" class="w-full text-[10px] md:text-xs file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-800 bg-white p-1.5 rounded-xl border border-gray-200">
                 </div>
-
-                <!-- កូដចាស់ (ប៊ូតុង) -->
                 <div class="flex justify-end gap-3 pt-4 border-t mt-2">
                     <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition">បោះបង់</button>
                     <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md">រក្សាទុក</button>
@@ -260,10 +256,11 @@
 
     <!-- MAIN APPLICATION -->
     <div id="main-app" class="flex w-full h-full hidden">
-        <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
-
-        <!-- Sidebar Navigation -->
-        <aside id="main-sidebar" class="w-64 bg-white shadow-xl flex flex-col z-50 relative">
+        <!-- Overlay សម្រាប់ Sidebar ចុច toggleSidebar -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Sidebar Navigation (បានបន្ថែម Effect រុញចេញចូល fixed md:relative...) -->
+        <aside id="main-sidebar" class="w-64 bg-white shadow-xl flex flex-col z-50 fixed md:relative h-screen transform -translate-x-full md:translate-x-0 md:ml-0 transition-all duration-300 ease-in-out shrink-0">
             <div class="p-4 border-b border-gray-100 bg-blue-600 text-white flex flex-col items-center">
                 <div class="text-center mb-3 pt-2">
                     <i class="fa-solid fa-school text-3xl mb-2"></i>
@@ -356,10 +353,10 @@
 
         <!-- Main Workspace -->
         <main class="flex-1 flex flex-col h-screen overflow-y-auto relative bg-gray-50">
-            <!-- Mobile Optimized Header -->
-            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-20 sticky top-0 no-print">
+            <!-- Mobile Optimized Header (ប៊ូតុង ៣ បន្ទាត់ត្រូវបានកែប្រែ) -->
+            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 z-20 sticky top-0 no-print w-full">
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition focus:outline-none">
+                    <button onclick="toggleSidebar()" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition focus:outline-none">
                         <i class="fa-solid fa-bars text-lg"></i>
                     </button>
                     <h1 id="page-title" class="text-base md:text-lg font-bold text-gray-800 truncate max-w-[150px] md:max-w-none">Dashboard</h1>
@@ -371,63 +368,6 @@
             </header>
 
             <div class="p-4 md:p-6 pb-24 md:pb-20">
-                <!-- ADMIN: MANAGE USERS VIEW -->
-                <div id="view-manage-users" class="hidden space-y-6">
-                    <div class="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-gray-100">
-                        <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-6 border-b border-gray-100 pb-4 gap-4">
-                            <h2 class="text-lg md:text-xl font-bold text-gray-800"><i class="fa-solid fa-users-cog text-purple-600 mr-2"></i> គ្រប់គ្រងគណនី</h2>
-                            <button onclick="fetchUsers()" class="w-full md:w-auto bg-purple-50 text-purple-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-purple-100 transition shadow-sm">
-                                <i class="fa-solid fa-rotate mr-1"></i> ទាញយកទិន្នន័យ
-                            </button>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-gray-200">
-                            <table class="w-full text-sm text-left text-gray-600">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200 whitespace-nowrap">
-                                    <tr>
-                                        <th class="px-4 py-3 text-center">ល.រ</th>
-                                        <th class="px-4 py-3">គណនី (Username)</th>
-                                        <th class="px-4 py-3">ពាក្យសម្ងាត់</th>
-                                        <th class="px-4 py-3">ឈ្មោះគ្រូបង្រៀន</th>
-                                        <th class="px-4 py-3 text-center">ថ្នាក់ទទួលបន្ទុក</th>
-                                        <th class="px-4 py-3 text-center">សកម្មភាព</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="manage-users-tbody" class="divide-y divide-gray-100 whitespace-nowrap"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <!-- SETTINGS VIEW -->
-                <div id="view-settings" class="hidden space-y-6">
-                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-8 max-w-2xl mx-auto">
-                        <h2 class="text-lg md:text-xl font-bold text-gray-800 border-b border-gray-100 pb-4 mb-6"><i class="fa-solid fa-gear text-blue-600 mr-2"></i> ការកំណត់ព័ត៌មានទូទៅ</h2>
-                        <form onsubmit="saveSettings(event)" class="space-y-4 md:space-y-5">
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">ឈ្មោះសាលារៀន</label>
-                                <input type="text" id="set-school" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">ឆ្នាំសិក្សា</label>
-                                <input type="text" id="set-year" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" placeholder="ឧ: ២០២៦-២០២៧" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">គោត្តនាម និងនាម (នាយកសាលា)</label>
-                                <input type="text" id="set-principal" class="w-full p-2.5 md:p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-base" required>
-                            </div>
-                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-6">
-                                <p class="text-xs md:text-sm text-blue-800 font-bold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> ចំណាំ៖</p>
-                                <p class="text-[11px] md:text-xs text-blue-700 leading-relaxed">ឈ្មោះគ្រូបន្ទុកថ្នាក់ត្រូវបានទាញយកដោយស្វ័យប្រវត្តិពី <b>គណនីដែលលោកគ្រូកំពុង Login បច្ចុប្បន្ន</b>។</p>
-                            </div>
-                            <div class="pt-6 mt-2 border-t border-gray-100 text-right">
-                                <button type="submit" id="btn-save-set" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-lg">
-                                    <i class="fa-solid fa-floppy-disk mr-2"></i> រក្សាទុកការកំណត់
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- 1. DASHBOARD VIEW -->
                 <div id="view-dashboard" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -482,12 +422,8 @@
                             </div>
 
                             <form id="add-student-form" onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
-                                <div>
-                                    <input type="text" id="new-id" required placeholder="អត្តលេខ" class="w-full p-2.5 md:p-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition text-base">
-                                </div>
-                                <div>
-                                    <input type="text" id="new-name" required placeholder="គោត្តនាម និងនាម" class="w-full p-2.5 md:p-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition text-base">
-                                </div>
+                                <div><input type="text" id="new-id" required placeholder="អត្តលេខ" class="w-full p-2.5 md:p-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition text-base"></div>
+                                <div><input type="text" id="new-name" required placeholder="គោត្តនាម និងនាម" class="w-full p-2.5 md:p-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition text-base"></div>
                                 <div>
                                     <select id="new-gender" class="w-full p-2.5 md:p-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition text-base">
                                         <option value="ស">ស្រី</option>
@@ -882,6 +818,7 @@
                             </div>
                     </div>
                 </div>
+
                 <!-- 7. HONOR ROLL VIEW -->
                 <div id="view-honor-roll" class="hidden space-y-6">
                     <div class="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-gray-100 print-area">
@@ -1082,34 +1019,32 @@
                     </div>
                 </div>
 
-                        <!-- 10. ID CARD VIEW (CR80) ទាំងអស់ -->
-                        <div id="view-id-card" class="hidden space-y-6">
-                            <div class="bg-white rounded-3xl p-5 md:p-8 shadow-sm print:shadow-none print:p-0">
-                                
-                                <!-- របារបញ្ជា -->
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 no-print">
-                                    <h2 class="text-lg md:text-xl font-bold flex items-center gap-2">
-                                        <i class="fa-solid fa-id-badge text-blue-500"></i> បង្កើតកាតសិស្ស
-                                    </h2>
-                                    <div class="flex gap-2 w-full md:w-auto">
-                                        <select id="id-student-select" class="w-full md:w-64 border border-gray-200 rounded-xl p-2.5 text-sm md:text-base font-bold outline-none" onchange="renderIDCard()">
-                                            <!-- ជម្រើសសិស្សនឹងលោតចូលទីនេះ -->
-                                        </select>
-                                        <button onclick="window.print()" class="bg-blue-600 text-white px-4 md:px-5 py-2 rounded-xl text-sm font-bold shadow-md whitespace-nowrap">
-                                            <i class="fa-solid fa-print md:mr-1"></i> <span class="hidden md:inline">ព្រីនកាតទាំងអស់</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- កន្លែងបង្ហាញកាតទាំងអស់ -->
-                                <div class="overflow-x-auto pb-4 pt-2 print:overflow-visible">
-                                    <div id="all-id-cards-container" class="flex flex-wrap justify-center gap-6 print:grid print:grid-cols-2 print:gap-[5mm] print:justify-start">
-                                        <!-- កាតនីមួយៗនឹងត្រូវបានគូរចូលទីនេះដោយ JavaScript -->
-                                    </div>
-                                </div>
-
+                <!-- 10. ID CARD VIEW (CR80) ទាំងអស់ -->
+                <div id="view-id-card" class="hidden space-y-6">
+                    <div class="bg-white rounded-3xl p-5 md:p-8 shadow-sm print:shadow-none print:p-0">
+                        
+                        <!-- របារបញ្ជា -->
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 no-print">
+                            <h2 class="text-lg md:text-xl font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-id-badge text-blue-500"></i> បង្កើតកាតសិស្ស
+                            </h2>
+                            <div class="flex gap-2 w-full md:w-auto">
+                                <select id="id-student-select" class="w-full md:w-64 border border-gray-200 rounded-xl p-2.5 text-sm md:text-base font-bold outline-none" onchange="renderIDCard()">
+                                    <!-- ជម្រើសសិស្សនឹងលោតចូលទីនេះ -->
+                                </select>
+                                <button onclick="window.print()" class="bg-blue-600 text-white px-4 md:px-5 py-2 rounded-xl text-sm font-bold shadow-md whitespace-nowrap">
+                                    <i class="fa-solid fa-print md:mr-1"></i> <span class="hidden md:inline">ព្រីនកាតទាំងអស់</span>
+                                </button>
                             </div>
                         </div>
+                        
+                        <!-- កន្លែងបង្ហាញកាតទាំងអស់ -->
+                        <div class="overflow-x-auto pb-4 pt-2 print:overflow-visible">
+                            <div id="all-id-cards-container" class="flex flex-wrap justify-center gap-6 print:grid print:grid-cols-2 print:gap-[5mm] print:justify-start">
+                                <!-- កាតនីមួយៗនឹងត្រូវបានគូរចូលទីនេះដោយ JavaScript -->
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
