@@ -210,6 +210,10 @@ body.sidebar-open {
     visibility: now visible;
     animation: fadein 0.4s, fadeout 0.4s 2.6s;
 }
+#toast.hide {
+    visibility: hidden;
+    opacity: 0;
+}
 @keyframes fadein {
     from {bottom: 0; opacity: 0;}
     to {bottom: 30px; opacity: 1;}
