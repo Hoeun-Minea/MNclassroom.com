@@ -20,7 +20,7 @@ body {
 }
 
 .font-siemreap {
-    font-family: 'Kantumruy Pro', sans-serif;
+    font-family: 'Khmer OS Siemreap', sans-serif;
 }
 
 /* =========================================
@@ -207,7 +207,7 @@ body.sidebar-open {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 #toast.show {
-    visibility: visible;
+    visibility: now visible;
     animation: fadein 0.4s, fadeout 0.4s 2.6s;
 }
 @keyframes fadein {
