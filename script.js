@@ -751,6 +751,8 @@ function applySettingsToUI() {
     if(document.getElementById('set-principal')) document.getElementById('set-principal').value = AppState.sysSettings.principal_title || '';
     document.querySelectorAll('set-dist').forEach(el => el.innerText = AppState.sysSettings.school_dist || 'កៀនស្វាយ');
     if(document.getElementById('set-dist')) document.getElementById('set-dist').value = AppState.sysSettings.school_dist || '';
+    document.querySelectorAll('set-teacher-name').forEach(el =>el.innerText = AppState.sysSettings.teacher_name || '');
+    if(document.getElementById('set-teacher-name')) document.getElementById('set-teacher-name').value = AppState.sysSettings.teacher_name || '';
 }
 
 async function saveGeneralInfo(e) {
