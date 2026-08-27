@@ -228,52 +228,58 @@ async function handleRegister(e) {
     }
 }
 
+// ==========================================
+// មុខងារ Login ភ្ជាប់ទៅកាន់ Laravel API
+// ==========================================
 async function handleLogin(e) {
-    e.preventDefault();
-    const user = document.getElementById('login-user').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
+    e.preventDefault(); // ការពារកុំឱ្យ Web លោត Refresh
+
+    const user = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-pass').value;
     const btn = document.getElementById('btn-login');
 
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងពិនិត្យ...';
+    // ប្តូរអក្សរលើប៊ូតុងពេលកំពុងដំណើរការ
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងផ្ទៀងផ្ទាត់...';
     btn.disabled = true;
 
     try {
-        const result = await fetchAPI({ action: 'login', username: user, password: pass });
+        // បាញ់សំណើទៅកាន់ Laravel API របស់លោកគ្រូ
+        const response = await fetch('http://localhost:8000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                username: user,
+                password: pass
+            })
+        });
 
-        if (result.status === "success") {
-            AppState.isLoggedIn = true;
-            AppState.loggedInUser = result.name;
-            AppState.loggedInUsername = result.username.trim().toLowerCase();
-            AppState.currentClassName = result.assigned_class || "២ខ";
+        const result = await response.json();
 
-            document.getElementById('user-fullname').innerText = AppState.loggedInUser;
-            document.getElementById('user-avatar').innerText = AppState.loggedInUser.charAt(0);
-            document.querySelectorAll('.sys-teacher').forEach(el => el.innerText = AppState.loggedInUser);
+        if (response.ok && result.status === 'success') {
+            // ១. រក្សាទុក Token ក្នុង localStorage សម្រាប់ប្រើពេលហៅទិន្នន័យផ្សេងៗ
+            localStorage.setItem('api_token', result.token);
 
-            const isAdmin = AppState.loggedInUsername === 'admin';
-            ['class-selector-container', 'nav-settings-label', 'nav-settings', 'nav-admin-label', 'nav-manage-users'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.toggle('hidden', !isAdmin);
-            });
+            // ២. រក្សាទុកព័ត៌មានអ្នកប្រើប្រាស់ចូលក្នុង AppState (សម្រាប់បង្ហាញលើ UI)
+            AppState.loggedInUsername = user;
+            AppState.loggedInName = result.user.name;
+            AppState.userRole = result.user.role;
+            AppState.assignedClass = result.user.class_assigned || '';
 
-            let levelMatch = AppState.currentClassName.replace(/[ក-ង]/g, '');
-            let roomMatch = AppState.currentClassName.replace(/[១-៦]/g, '');
-            if(document.getElementById('filter-level')) document.getElementById('filter-level').value = levelMatch;
-            if(document.getElementById('filter-room')) document.getElementById('filter-room').value = roomMatch;
-
-            updateClassDisplayUI();
-
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').classList.remove('hidden');
-            showToast(`ស្វាគមន៍ ${AppState.loggedInUser}`);
-
-            await fetchStudents();
+            // ៣. អាប់ដេត UI និងចូលទៅកាន់ប្រព័ន្ធ
+            showToast(result.message);
+            startApp(); // ហៅអនុគមន៍លាក់ផ្ទាំង Login និងបង្ហាញ Dashboard
         } else {
-            alert(result.message);
+            // បង្ហាញសារ Error ប្រសិនបើ Login ខុស
+            showToast(result.message || 'គណនីមិនត្រឹមត្រូវ!');
         }
     } catch (error) {
-        alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ! បញ្ហា CORS ឬ URL ខុស។");
+        showToast('បរាជ័យក្នុងការតភ្ជាប់ទៅកាន់ Server!');
+        console.error('Login Error:', error);
     } finally {
+        // ប្តូរប៊ូតុងមកសភាពដើមវិញ
         btn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i> ចូលប្រើប្រាស់';
         btn.disabled = false;
     }
@@ -1476,7 +1482,7 @@ function switchTab(tabId) {
     if(tabId === 'manage-users') fetchUsers();
     if(tabId === 'id-card') renderIDCard();
     if(tabId === 'leaderboard') renderLeaderboard();
-    if(tabId === 'attendance-report') {
+    if(tabId === 'attendance-report'){
         const attMonthSel = document.getElementById('att-month-selector');
         if(attMonthSel && !attMonthSel.value) {
             let now = new Date();
@@ -1624,62 +1630,11 @@ function enableDragToScroll() {
         });
     });
 }
+function leaderbaord()
 
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(enableDragToScroll, 500); 
 });
-
-function enablePrintSpacing() {
-    const wrappers = document.querySelectorAll('.table-scroll-wrapper');
-    
-    wrappers.forEach(wrapper => {
-        if (wrapper.previousElementSibling && wrapper.previousElementSibling.classList.contains('print-spacer')) return;
-
-        const topSpacer = document.createElement('div');
-        topSpacer.className = 'print-spacer';
-        topSpacer.innerHTML = '<div class="resize-handle no-print"><i class="fa-solid fa-arrows-up-down"></i> អូសសារ៉េគម្លាតក្បាល</div>';
-        wrapper.parentNode.insertBefore(topSpacer, wrapper);
-
-        const bottomSpacer = document.createElement('div');
-        bottomSpacer.className = 'print-spacer';
-        bottomSpacer.innerHTML = '<div class="resize-handle no-print"><i class="fa-solid fa-arrows-up-down"></i> អូសសារ៉េគម្លាតបាត</div>';
-        wrapper.parentNode.insertBefore(bottomSpacer, wrapper.nextSibling);
-
-        makeDraggableSpacer(topSpacer);
-        makeDraggableSpacer(bottomSpacer);
-    });
-}
-
-function makeDraggableSpacer(element) {
-    let isResizing = false;
-    let startY;
-    let startHeight;
-
-    element.addEventListener('mousedown', function(e) {
-        isResizing = true;
-        startY = e.pageY;
-        startHeight = parseInt(document.defaultView.getComputedStyle(element).height, 10);
-        document.body.style.cursor = 'ns-resize'; 
-        element.style.backgroundColor = 'rgba(59, 130, 246, 0.2)'; 
-        e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', function(e) {
-        if (!isResizing) return;
-        let newHeight = startHeight + (e.pageY - startY);
-        if (newHeight >= 0 && newHeight <= 400) { 
-            element.style.height = newHeight + 'px';
-        }
-    });
-
-    document.addEventListener('mouseup', function() {
-        if(isResizing) {
-            isResizing = false;
-            document.body.style.cursor = 'default';
-            element.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
-        }
-    });
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(enablePrintSpacing, 1500); 
