@@ -251,5 +251,17 @@ body {
     table { width: 100% !important; border-collapse: collapse; }
     th, td { border: 1px solid black !important; padding: 4px !important; color: black !important; }
 }
+/* លាក់សញ្ញាព្រួញឡើងចុះក្នុងប្រអប់ពិន្ទុ ដើម្បីកុំឱ្យទើសភ្នែក */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+
+/* ពណ៌ពេលចុចលើប្រអប់បញ្ចូលទិន្នន័យវត្តមាន និងពិន្ទុ (Highlight ពណ៌ខៀវ) */
+.att-input, .grade-input { transition: all 0.2s; cursor: pointer; }
+.att-input:focus, .grade-input:focus {
+    background-color: #dbeafe !important; /* ផ្ទៃពណ៌ខៀវខ្ចី */
+    box-shadow: inset 0 0 0 2px #3b82f6; /* បន្ទាត់គែមពណ៌ខៀវ */
+    border-radius: 6px;
+}
 
 }

@@ -205,15 +205,136 @@ function closeAddStudentModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-function openDisciplineModal() {
-    populateDisciplineDropdown(); // ទាញឈ្មោះសិស្សចូល Dropdown ជាមុន
-    const modal = document.getElementById('add-discipline-modal');
+// ==========================================
+// មុខងារ Modal បង្ហាញបញ្ជីឈ្មោះសិស្ស (Quick Action)
+// ==========================================
+function openStudentListModal() {
+    renderModalStudentList(); // ទាញទិន្នន័យមកដាក់ក្នុងតារាងសិន មុននឹងបង្ហាញ
+    const modal = document.getElementById('student-list-modal');
     if (modal) modal.classList.remove('hidden');
 }
 
-function closeDisciplineModal() {
-    const modal = document.getElementById('add-discipline-modal');
+function closeStudentListModal() {
+    const modal = document.getElementById('student-list-modal');
     if (modal) modal.classList.add('hidden');
+}
+
+function renderModalStudentList() {
+    const tbody = document.getElementById('modal-student-list-tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    // តម្រៀបតាមអក្ខរក្រម
+    const sortedDb = [...AppState.currentClassDb].sort((a, b) => a.name.localeCompare(b.name, 'km'));
+    
+    if(sortedDb.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-400 font-bold">មិនទាន់មានសិស្សក្នុងថ្នាក់នេះទេ</td></tr>`;
+        return;
+    }
+
+    sortedDb.forEach((s, idx) => {
+        let photoHtml = s.photo 
+            ? `<img src="${s.photo}" class="w-8 h-8 rounded-full object-cover border inline-block shadow-sm">` 
+            : `<div class="w-8 h-8 rounded-full bg-gray-200 inline-flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-user text-gray-400"></i></div>`;
+        
+        tbody.innerHTML += `
+            <tr class="bg-white border-b hover:bg-cyan-50 transition-colors cursor-pointer" onclick="closeStudentListModal(); switchTab('manage-students');">
+                <td class="px-4 py-2.5 border-r text-center text-gray-500 font-medium">${idx + 1}</td>
+                <td class="px-4 py-2.5 border-r text-center">${photoHtml}</td>
+                <td class="px-4 py-2.5 border-r font-mono text-gray-500 text-center text-xs md:text-sm">${s.id}</td>
+                <td class="px-4 py-2.5 border-r font-bold text-gray-800">${s.name}</td>
+                <td class="px-4 py-2.5 border-r text-center font-bold ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'}">${s.gender}</td>
+                <td class="px-4 py-2.5 text-center text-gray-600">${s.dob || '-'}</td>
+            </tr>
+        `;
+    });
+}
+
+// ==========================================
+// មុខងារ Modal បង្ហាញព័ត៌មានទូទៅ (General Info)
+// ==========================================
+function openGeneralInfoModal() {
+    applySettingsToUI(); // ទាញទិន្នន័យចាស់មកបង្ហាញក្នុងប្រអប់
+    const modal = document.getElementById('general-info-modal');
+    if(modal) modal.classList.remove('hidden');
+}
+
+function closeGeneralInfoModal() {
+    const modal = document.getElementById('general-info-modal');
+    if(modal) modal.classList.add('hidden');
+}
+
+function applySettingsToUI() {
+    const s = AppState.sysSettings || {};
+    const fields = [
+        { id: 'set-school', key: 'school_name' }, { id: 'set-school-en', key: 'school_name_en' },
+        { id: 'set-school-abbr', key: 'school_abbr' }, { id: 'set-school-code', key: 'school_code' },
+        { id: 'set-school-type', key: 'school_type' }, { id: 'set-principal', key: 'principal_title' },
+        { id: 'set-year', key: 'academic_year' }, { id: 'set-prov', key: 'school_prov' },
+        { id: 'set-dist', key: 'school_dist' }, { id: 'set-comm', key: 'school_comm' },
+        { id: 'set-vill', key: 'school_vill' }, { id: 'set-teacher-name', key: 'teacher_name' },
+        { id: 'set-teacher-gender', key: 'teacher_gender' }, { id: 'set-teacher-dob', key: 'teacher_dob' },
+        { id: 'set-teacher-phone', key: 'teacher_phone' }, { id: 'set-teacher-class', key: 'teacher_class' }
+    ];
+    
+    fields.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (el && s[f.key]) el.value = s[f.key];
+    });
+
+    updateSystemUI();
+}
+
+function updateSystemUI() {
+    const s = AppState.sysSettings || {};
+    document.querySelectorAll('.sys-school').forEach(el => el.innerText = s.school_name || 'សាលាបឋមសិក្សា');
+    document.querySelectorAll('.sys-year').forEach(el => el.innerText = s.academic_year || '');
+    document.querySelectorAll('.sys-principal').forEach(el => el.innerText = s.principal_title || 'នាយក/នាយិកាសាលា');
+    document.querySelectorAll('.sys-teacher').forEach(el => el.innerText = s.teacher_name || AppState.loggedInName || '');
+}
+
+async function saveGeneralInfo(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-general');
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងរក្សាទុក...'; btn.disabled = true; }
+
+    const payload = {
+        action: 'save_settings',
+        settings: {
+            school_name: document.getElementById('set-school').value.trim(),
+            school_name_en: document.getElementById('set-school-en').value.trim(),
+            school_abbr: document.getElementById('set-school-abbr').value.trim(),
+            school_code: document.getElementById('set-school-code').value.trim(),
+            school_type: document.getElementById('set-school-type').value,
+            principal_title: document.getElementById('set-principal').value.trim(),
+            academic_year: document.getElementById('set-year').value.trim(),
+            school_prov: document.getElementById('set-prov').value.trim(),
+            school_dist: document.getElementById('set-dist').value.trim(),
+            school_comm: document.getElementById('set-comm').value.trim(),
+            school_vill: document.getElementById('set-vill').value.trim(),
+            teacher_name: document.getElementById('set-teacher-name').value.trim(),
+            teacher_gender: document.getElementById('set-teacher-gender').value,
+            teacher_dob: document.getElementById('set-teacher-dob').value.trim(),
+            teacher_phone: document.getElementById('set-teacher-phone').value.trim(),
+            teacher_class: document.getElementById('set-teacher-class').value.trim(),
+        }
+    };
+
+    try {
+        const result = await fetchAPI(payload);
+        if (result.status === "success") {
+            AppState.sysSettings = { ...AppState.sysSettings, ...payload.settings };
+            updateSystemUI();
+            showToast("បានរក្សាទុកព័ត៌មានទូទៅជោគជ័យ!");
+            closeGeneralInfoModal(); // បិទ Pop-up ពេល Save រួច
+        } else {
+            showToast("បញ្ហា: " + result.message);
+        }
+    } catch (err) {
+        showToast("បរាជ័យក្នុងការតភ្ជាប់ទៅកាន់ Server!");
+    } finally {
+        if(btn) { btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> រក្សាទុកព័ត៌មានទូទៅ'; btn.disabled = false; }
+    }
 }
 
 // ==========================================
@@ -577,14 +698,10 @@ function updateAllViews() {
     if(typeof renderLeaderboard === 'function') renderLeaderboard();
     if(typeof renderHonorRoll === 'function') renderHonorRoll();
     if(typeof renderMonthlyResults === 'function') renderMonthlyResults();
-
-    
-    // បន្ថែម ២ ជួរនេះ ដើម្បីឱ្យតារាងពិន្ទុ និងវត្តមាន លោតឈ្មោះសិស្សចូល
     if(typeof loadDetailedSheet === 'function') loadDetailedSheet();
-    if(typeof handleDateChange === 'function') {
-        const attMonthSel = document.getElementById('att-month-selector');
-        if(attMonthSel && attMonthSel.value) handleDateChange();
-    }
+    
+    // 🔴 ត្រូវប្រាកដថាមានបន្ទាត់នេះ ទើបវាលោតឈ្មោះសិស្សចូលប្រអប់ទាំង ៣ នោះ
+    if(typeof populateProfileDropdown === 'function') populateProfileDropdown();
 }
 
 async function fetchUsers() {
@@ -642,7 +759,47 @@ function renderUsersTable() {
         `;
     });
 }
+// មុខងារបើក Pop-up បង្កើតគណនី
+function openAddUserModal() {
+    // សម្អាតប្រអប់ទិន្នន័យចាស់ៗចេញ
+    document.getElementById('add-user-form').reset(); 
+    document.getElementById('add-user-modal').classList.remove('hidden');
+}
 
+// មុខងារបិទ Pop-up បង្កើតគណនី
+function closeAddUserModal() {
+    document.getElementById('add-user-modal').classList.add('hidden');
+}
+
+// មុខងារពេលចុច Save (បញ្ជូនទៅ Google App Script)
+async function submitAddUser(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit-add-user');
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងរក្សាទុក...'; btn.disabled = true; }
+
+    const payload = {
+        action: 'register', // យើងប្រើប្រាស់ action ដូចទៅនឹងការចុះឈ្មោះធម្មតាដែរ
+        name: document.getElementById('add-u-name').value.trim(),
+        username: document.getElementById('add-u-username').value.trim(),
+        password: document.getElementById('add-u-password').value.trim(),
+        assigned_class: document.getElementById('add-u-level').value + document.getElementById('add-u-room').value
+    };
+
+    try {
+        const result = await fetchAPI(payload);
+        if (result.status === "success") {
+            showToast("បង្កើតគណនីថ្មីបានជោគជ័យ!");
+            closeAddUserModal();
+            fetchUsers(); // Refresh តារាងគណនីឡើងវិញភ្លាមៗ
+        } else {
+            alert(result.message || "បរាជ័យក្នុងការបង្កើតគណនី!");
+        }
+    } catch (error) {
+        alert("មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
+    } finally {
+        if(btn) { btn.innerHTML = '<i class="fa-solid fa-save mr-2"></i> បង្កើតគណនី'; btn.disabled = false; }
+    }
+}
 function openEditUserModal(username) {
     const u = AppState.usersDb.find(x => x.username === username);
     if(!u) return;
@@ -1048,34 +1205,9 @@ function handleDateChange() {
     }
 }
 
-// ៣. ទាញយកទិន្នន័យវត្តមានពី Server (Google Apps Script)
-async function fetchAttendanceReport(yyyyMm, currentYear, currentMonthNum, currentDaysInMonth) {
-    if(!yyyyMm) return;
-    
-    try {
-        const result = await fetchAPI({
-            action: 'get_attendance', 
-            month: yyyyMm, 
-            class_name: AppState.currentClassName
-        });
-        
-        if(result.status === "success" && result.data) {
-            AppState.dbAttendance = result.data;
-        } else {
-            AppState.dbAttendance = {};
-        }
-    } catch (err) { 
-        console.error(err);
-        AppState.dbAttendance = {}; 
-    }
-    
-    // គូរតារាងបន្ទាប់ពីបានទិន្នន័យ
-    if(currentYear && currentMonthNum && currentDaysInMonth) {
-        renderAttendanceReport(currentYear, currentMonthNum, currentDaysInMonth);
-    }
-}
-
-// ៤. បង្កើតតារាងវត្តមានលើអេក្រង់
+// ==========================================
+// កូដសម្រាប់តារាងវត្តមាន (ប្រើប្រអប់ធម្មតា)
+// ==========================================
 function renderAttendanceReport(currentYear, currentMonthNum, currentDaysInMonth) {
     const daysRow = document.getElementById('att-days-row');
     const khmerDaysRow = document.getElementById('att-khmer-days-row');
@@ -1086,10 +1218,12 @@ function renderAttendanceReport(currentYear, currentMonthNum, currentDaysInMonth
 
     if(headerColspan) headerColspan.colSpan = currentDaysInMonth;
     
+    // បង្ខំឱ្យតារាងមានប្រវែងយ៉ាងតិច 1300px កុំឱ្យប្រជ្រៀតគ្នា
+    document.getElementById('attendance-report-table').classList.add('min-w-[1300px]');
+    
     daysRow.innerHTML = ''; 
     khmerDaysRow.innerHTML = '';
 
-    // បង្កើតជួរថ្ងៃទី (1 ដល់ 31) និង ថ្ងៃច័ន្ទ-អាទិត្យ
     for(let i = 1; i <= currentDaysInMonth; i++) {
         let dateObj = new Date(currentYear, currentMonthNum - 1, i);
         let dayOfWeek = dateObj.getDay();
@@ -1098,16 +1232,14 @@ function renderAttendanceReport(currentYear, currentMonthNum, currentDaysInMonth
         
         let bgClass = isWeekend ? 'bg-gray-200 text-red-500 font-bold' : 'bg-green-50 text-green-900';
         
-        // បន្ថែម min-w ឱ្យវាស្មើគ្នារហូតមិនអាចរួមតូច ឬរីកធំបាន
-        khmerDaysRow.innerHTML += `<th class="${bgClass} w-7 min-w-[28px] max-w-[28px] overflow-hidden px-0.5 py-1 text-[11px] border border-gray-200">${khDayName}</th>`;
-        daysRow.innerHTML += `<th class="${bgClass} w-7 min-w-[28px] max-w-[28px] overflow-hidden px-0.5 py-1 text-[10px] border border-gray-200">${i}</th>`;
+        khmerDaysRow.innerHTML += `<th class="${bgClass} min-w-[40px] py-2 text-[11px] border border-gray-200">${khDayName}</th>`;
+        daysRow.innerHTML += `<th class="${bgClass} min-w-[40px] py-2 text-[11px] border border-gray-200">${i}</th>`;
     }
     
-    daysRow.innerHTML += `<th class="bg-blue-50 w-8 border border-gray-200">វ</th><th class="bg-blue-50 w-8 text-red-600 border border-gray-200">អ</th><th class="bg-blue-50 w-8 text-yellow-600 border border-gray-200">ច</th>`;
-    khmerDaysRow.innerHTML += `<th colspan="3" class="bg-blue-50 border border-gray-200">សរុប</th>`;
+    daysRow.innerHTML += `<th class="bg-blue-50 w-10 border border-gray-200">វ</th><th class="bg-blue-50 w-10 text-red-600 border border-gray-200">អ</th><th class="bg-blue-50 w-10 text-yellow-600 border border-gray-200">ច</th>`;
+    khmerDaysRow.innerHTML += `<th colspan="3" class="bg-blue-50 border border-gray-200 py-1.5">សរុប</th>`;
 
     tbody.innerHTML = '';
-    
     const sortedDb = [...AppState.currentClassDb].sort((a, b) => a.name.localeCompare(b.name, 'km'));
     
     if(sortedDb.length === 0) {
@@ -1118,36 +1250,73 @@ function renderAttendanceReport(currentYear, currentMonthNum, currentDaysInMonth
     sortedDb.forEach((s, idx) => {
         let rowHtml = `
             <tr class="bg-white border-b hover:bg-gray-50" data-studentid="${s.id}">
-                <td class="text-center border border-gray-200">${idx + 1}</td>
-                <td class="text-left px-2 font-bold text-gray-800 border border-gray-200">${s.name}</td>
-                <td class="text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-medium border border-gray-200">${s.gender}</td>`;
+                <td class="text-center border border-gray-200 py-1.5 font-medium">${idx + 1}</td>
+                <td class="text-left px-4 font-bold text-gray-800 border border-gray-200">${s.name}</td>
+                <td class="text-center ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'} font-bold border border-gray-200">${s.gender}</td>`;
         
         let studentAtt = AppState.dbAttendance[s.id] || {};
         
         for(let i = 1; i <= currentDaysInMonth; i++) {
-            let dateObj = new Date(currentYear, currentMonthNum - 1, i);
-            let dayOfWeek = dateObj.getDay();
-            let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+            let isWeekend = (new Date(currentYear, currentMonthNum - 1, i).getDay() === 0 || new Date(currentYear, currentMonthNum - 1, i).getDay() === 6);
             let val = studentAtt[i] || '';
-            
             if(isWeekend && !val) val = '-';
             
-            let disabledAttr = isWeekend ? 'disabled' : '';
-            let weekendStyle = isWeekend ? 'bg-gray-100 text-gray-400' : '';
-            
-            rowHtml += `<td class="${weekendStyle} border border-gray-200 w-7 min-w-[28px] max-w-[28px] text-center"><input type="text" class="att-input d${i} w-full text-center border-none outline-none bg-transparent uppercase font-bold" maxlength="1" value="${val}" ${disabledAttr} onkeyup="calculateAttendance(${currentDaysInMonth})"></td>`;
+            // កែមកប្រើប្រអប់ធម្មតា (មាន Border ពណ៌ប្រផេះ)
+            rowHtml += `<td class="${isWeekend ? 'bg-gray-100' : ''} border border-gray-200 p-1 text-center">
+                <input type="text" class="att-input d${i} w-full p-1.5 text-center border border-gray-300 rounded outline-none bg-white uppercase font-bold text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" maxlength="1" value="${val}" ${isWeekend ? 'disabled' : ''} onkeyup="calculateAttendance(${currentDaysInMonth})">
+            </td>`;
         }
         
         rowHtml += `
-            <td class="text-center font-bold text-green-600 bg-gray-50 border border-gray-200 tot-v">0</td>
-            <td class="text-center font-bold text-red-500 bg-gray-50 border border-gray-200 tot-a">0</td>
-            <td class="text-center font-bold text-yellow-500 bg-gray-50 border border-gray-200 tot-l">0</td>
+            <td class="text-center font-bold text-green-600 bg-gray-50 border border-gray-200 tot-v text-base">0</td>
+            <td class="text-center font-bold text-red-500 bg-gray-50 border border-gray-200 tot-a text-base">0</td>
+            <td class="text-center font-bold text-yellow-500 bg-gray-50 border border-gray-200 tot-l text-base">0</td>
         </tr>`;
         
         tbody.innerHTML += rowHtml;
     });
     
     calculateAttendance(currentDaysInMonth);
+}
+
+
+// ==========================================
+// កូដសម្រាប់តារាងពិន្ទុ (លាក់សញ្ញាព្រួញឡើងចុះ)
+// ==========================================
+function loadDetailedSheet() {
+    const m = document.getElementById('month-selector').value;
+    const tbody = document.getElementById('detailed-tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    const sortedDb = [...AppState.currentClassDb].sort((a, b) => a.name.localeCompare(b.name, 'km'));
+
+    if(sortedDb.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="25" class="py-8 text-center text-gray-400">មិនមានសិស្សក្នុងថ្នាក់នេះទេ</td></tr>`;
+        return;
+    }
+
+    sortedDb.forEach((s, idx) => {
+        const sc = s.scores[m] || {};
+        let inputHtml = "";
+        for(let i=1; i<=19; i++) {
+            // បានបន្ថែម Class បិទព្រួញឡើងចុះនៅទីនេះ
+            inputHtml += `<td class="p-1 border border-gray-200 text-center">
+                <input type="number" min="0" max="10" step="0.5" class="grade-input s${i} w-full p-1.5 text-center border border-gray-300 rounded outline-none bg-white font-bold text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" value="${sc[`sub${i}`] !== undefined ? sc[`sub${i}`] : ''}">
+            </td>`;
+        }
+        tbody.innerHTML += `
+            <tr class="hover:bg-blue-50 transition-colors border-b" data-id="${s.id}">
+                <td class="text-center border border-gray-200 font-medium py-1.5">${idx + 1}</td>
+                <td class="text-left px-4 font-bold text-gray-800 border border-gray-200">${s.name}</td>
+                <td class="text-center font-bold border border-gray-200 ${s.gender === 'ស' ? 'text-pink-600' : 'text-blue-600'}">${s.gender}</td>
+                ${inputHtml}
+                <td class="text-center font-bold bg-gray-100 border border-gray-200 text-base">${sc.total || ''}</td>
+                <td class="text-center font-bold bg-blue-50 text-blue-700 border border-gray-200 text-base">${sc.avg || ''}</td>
+                <td class="text-center font-bold bg-red-50 text-red-700 border border-gray-200 text-base">${sc.rank || ''}</td>
+                <td class="text-center font-bold bg-green-50 text-green-700 border border-gray-200">${sc.grade || ''}</td>
+            </tr>
+        `;
+    });
 }
 
 // ៥. មុខងារគណនាវត្តមាន (បូកសរុប វ, អ, ច)
@@ -1378,6 +1547,9 @@ function renderMonthlyResults() {
     if(document.getElementById('result-month-title')) document.getElementById('result-month-title').innerText = titleText;
 }
 
+// ==========================================
+// មុខងារបង្ហាញទិន្នន័យលើ Dashboard (ស្ថិតិ, ក្រាហ្វិក, Top 3)
+// ==========================================
 function renderDashboardAdvanced() {
     let latestMonth = null;
     for(let i=constants.monthsList.length-1; i>=0; i--) {
@@ -1392,7 +1564,7 @@ function renderDashboardAdvanced() {
     const attChartDiv = document.getElementById('attendanceChart');
     const attNoDataDiv = document.getElementById('att-chart-no-data');
 
-    // ១. គណនាលទ្ធផល (សិស្សជាប់ និង ធ្លាក់)
+    // ១. គណនាលទ្ធផល (សិស្សជាប់ និង ធ្លាក់) ជាក្រាបសសរ (Bar Chart)
     if(!latestMonth) {
         document.querySelectorAll('.dash-chart-month').forEach(el => el.innerText = "មិនមានទិន្នន័យ");
         if(noDataDiv) noDataDiv.classList.remove('hidden'); 
@@ -1410,19 +1582,31 @@ function renderDashboardAdvanced() {
             }
         });
 
+        // គូរក្រាបសសរ (Bar Chart) សម្រាប់ ជាប់/ធ្លាក់
         if(chartDiv) {
             const ctx = chartDiv.getContext('2d');
             if(charts.dash) charts.dash.destroy();
             charts.dash = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar', // ដូរពី doughnut ទៅ bar
                 data: {
                     labels: ['សិស្សជាប់', 'សិស្សធ្លាក់'],
-                    datasets: [{ data: [pass, fail], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }]
+                    datasets: [{ 
+                        label: 'ចំនួនសិស្ស',
+                        data: [pass, fail], 
+                        backgroundColor: ['#10b981', '#ef4444'], // បៃតង និង ក្រហម
+                        borderRadius: 6 // ធ្វើឱ្យគែមសសរមូលស្អាត
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '70%' }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, // លាក់ Legend
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } // ចាប់ផ្តើមពី 0 និងលោតម្តង 1
+                }
             });
         }
 
+        // រៀបចំតារាងសិស្សពូកែ Top 3
         if(top3Container) {
             top3Container.innerHTML = '';
             const top3 = [...AppState.currentClassDb].filter(s => s.scores[latestMonth] && s.scores[latestMonth].avg > 0)
@@ -1441,15 +1625,15 @@ function renderDashboardAdvanced() {
         }
     }
 
-    // ២. គណនាស្ថិតិវត្តមានសម្រាប់ក្រាហ្វិកទី២
+    // ២. គណនាស្ថិតិវត្តមាន ជាក្រាបសសរ (Bar Chart)
     let v = 0, a = 0, l = 0;
     Object.keys(AppState.dbAttendance).forEach(studentId => {
         if(AppState.currentClassDb.find(s => s.id === studentId)) {
             const studentDays = AppState.dbAttendance[studentId];
             Object.values(studentDays).forEach(status => {
-                if(status === 'V') v++;
-                else if(status === 'A') a++;
-                else if(status === 'L') l++;
+                if(status === 'V' || status === 'វ') v++;
+                else if(status === 'A' || status === 'អ') a++;
+                else if(status === 'L' || status === 'ច') l++;
             });
         }
     });
@@ -1460,16 +1644,28 @@ function renderDashboardAdvanced() {
     } else {
         if(attNoDataDiv) attNoDataDiv.classList.add('hidden'); 
         if(attChartDiv) attChartDiv.classList.remove('hidden');
+        
+        // គូរក្រាបសសរ (Bar Chart) សម្រាប់ វត្តមាន
         if(attChartDiv) {
             const ctxAtt = attChartDiv.getContext('2d');
             if(charts.att) charts.att.destroy();
             charts.att = new Chart(ctxAtt, {
-                type: 'pie',
+                type: 'bar', // ដូរពី pie ទៅ bar
                 data: {
                     labels: ['វត្តមាន', 'ច្បាប់', 'អវត្តមាន'],
-                    datasets: [{ data: [v, l, a], backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 0 }]
+                    datasets: [{ 
+                        label: 'ចំនួនដង',
+                        data: [v, l, a], 
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'], // ខៀវ លឿង ក្រហម
+                        borderRadius: 6 
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                }
             });
         }
     }
@@ -1585,7 +1781,313 @@ function renderModalStudentList() {
         `;
     });
 }
+// ==========================================
+// មុខងារកាតសម្គាល់ខ្លួនសិស្ស (STUDENT ID CARD)
+// ==========================================
+function renderIDCard() {
+    const selectEl = document.getElementById('id-student-select');
+    const id = selectEl ? selectEl.value : ''; 
+    const container = document.getElementById('all-id-cards-container');
+    if(!container) return;
+    
+    container.innerHTML = '';
+    
+    // កំណត់សិស្សដែលត្រូវបង្ហាញ (ម្នាក់ ឬទាំងអស់)
+    let studentsToRender = [];
+    if(id) {
+        const s = AppState.currentClassDb.find(x => x.id === id);
+        if(s) studentsToRender.push(s);
+    } else {
+        studentsToRender = [...AppState.currentClassDb].sort((a,b) => a.name.localeCompare(b.name, 'km'));
+    }
 
+    if(studentsToRender.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center w-full py-10 font-bold">មិនទាន់មានសិស្សក្នុងថ្នាក់នេះទេ</p>';
+        return;
+    }
+
+    // ទាញយកថ្ងៃខែបច្ចុប្បន្ន
+    let t = new Date(); 
+    let dateStr = `${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;
+    let cardsHtml = '';
+    
+    // ទាញយកព័ត៌មានទូទៅរបស់សាលាពី Settings
+    const s_name = AppState.sysSettings?.school_name || 'សាលាបឋមសិក្សា';
+    const a_year = AppState.sysSettings?.academic_year || '២០២៦-២០២៧';
+    const p_title = AppState.sysSettings?.principal_title || 'នាយកសាលា';
+
+    // ចាប់ផ្តើមគូរកាតសិស្សម្នាក់ៗ
+    studentsToRender.forEach(s => {
+        let photoHtml = s.photo 
+            ? `<img src="${s.photo}" class="w-full h-full object-cover">` 
+            : `<span class="text-gray-400 text-[10px] font-sans absolute inset-0 flex items-center justify-center">4x6</span>`;
+
+        cardsHtml += `
+            <div class="id-card-box relative bg-white overflow-hidden shrink-0 shadow-sm print:shadow-none border border-gray-200" style="width: 85.6mm; height: 53.98mm; box-sizing: border-box;">
+                
+                <!-- ពណ៌ក្បាលខាងលើ -->
+                <div class="absolute top-0 left-0 w-full h-[11mm] bg-blue-600" style="border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></div>
+                
+                <div class="relative z-10 flex items-center justify-between px-[3mm] pt-[1.5mm]">
+                    <div class="w-[9mm] h-[9mm] bg-white rounded-full flex items-center justify-center shadow-sm"><i class="fa-solid fa-school text-blue-800 text-[10px]"></i></div>
+                    <div class="text-center text-white flex-1 leading-tight">
+                        <p class="font-moul text-[7px]">${s_name}</p>
+                        <p class="text-[5px] font-bold tracking-widest mt-[0.5mm] uppercase font-sans">Primary School</p>
+                    </div>
+                    <div class="w-[9mm]"></div>
+                </div>
+                
+                <div class="text-center mt-[1.5mm] mb-[1mm]">
+                    <p class="font-moul text-[9px] text-blue-900 tracking-wide">កាតសម្គាល់ខ្លួនសិស្ស</p>
+                </div>
+                
+                <!-- ផ្នែកកណ្តាល (រូបថត និង ព័ត៌មាន) -->
+                <div class="flex px-[3.5mm] gap-[3mm]">
+                    <div class="w-[20mm] h-[26.6mm] bg-gray-100 border border-gray-300 rounded flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                        ${photoHtml}
+                    </div>
+                    <div class="flex-1 text-[7px] font-bold text-gray-800 leading-tight space-y-[1.2mm] font-siemreap mt-[0.5mm]">
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">អត្តលេខ</span> <span class="text-red-600">: <span class="font-sans">${s.id}</span></span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ឈ្មោះ</span> <span class="font-moul text-[7.5px]">: ${s.name}</span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ភេទ</span> : ${s.gender} <span class="text-blue-800 ml-[1.5mm]">ថ្នាក់ទី</span> : <span class="text-red-600 font-sans">${s.class_name}</span></p>
+                        <p><span class="text-blue-800 w-[11.5mm] inline-block">ថ្ងៃកំណើត</span> : <span class="font-sans">${s.dob || '-'}</span></p>
+                        <p class="truncate"><span class="text-blue-800 w-[11.5mm] inline-block">ទីលំនៅ</span> : ${s.pob || '-'}</p>
+                        <p class="truncate"><span class="text-blue-800 w-[11.5mm] inline-block">មាតាបិតា</span> : ${s.father || ''} / ${s.mother || ''}</p>
+                    </div>
+                </div>
+                
+                <!-- ផ្នែកខាងក្រោម (ហត្ថលេខា) -->
+                <div class="absolute bottom-[2mm] w-full px-[3.5mm] flex justify-between items-end">
+                    <div class="text-[5.5px] font-bold text-gray-600 leading-tight font-siemreap pb-[1mm]">
+                        <p>បញ្ជាក់៖ ជាសិស្សនៅសាលាខាងលើពិតប្រាកដមែន។</p>
+                        <p class="mt-[0.5mm] text-blue-800">ឆ្នាំសិក្សា៖ <span class="font-sans">${a_year}</span></p>
+                    </div>
+                    <div class="text-center font-bold text-gray-800 text-[5.5px] leading-tight font-siemreap">
+                        <p class="font-sans">កាលបរិច្ឆេទ ${dateStr}</p>
+                        <p class="font-moul mt-[1.5mm] text-[6px] sys-principal">${p_title}</p>
+                        <p class="mt-[4mm] border-t border-dotted border-gray-600 w-[18mm] mx-auto"></p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = cardsHtml;
+}
+// ==========================================
+// មុខងារប្តូរផ្ទាំង (Switch Tab) - បានកែសម្រួលថ្មី
+// ==========================================
+function switchTab(tabId) {
+    const tabs = ['dashboard', 'manage-students', 'attendance-report', 'detailed-sheet', 'monthly-results', 'leaderboard', 'honor-roll', 'student', 'tracking-book', 'id-card', 'settings', 'manage-users', 'general-info', 'schedule', 'discipline'];
+    
+    // បិទ/បើក ផ្ទាំង
+    tabs.forEach(id => {
+        const view = document.getElementById(`view-${id}`);
+        const nav = document.getElementById(`nav-${id}`);
+        if(view) view.classList.toggle('hidden', id !== tabId);
+        if(nav) nav.classList.toggle('nav-active', id === tabId);
+    });
+
+    // ដូរចំណងជើងផ្នែកខាងលើ
+    const titles = {
+        'dashboard': 'ផ្ទាំងសង្ខេបរួម', 'manage-students': 'បញ្ជីឈ្មោះសិស្ស', 'attendance-report': 'របាយការណ៍វត្តមាន',
+        'detailed-sheet': 'បញ្ចូលពិន្ទុ', 'monthly-results': 'លទ្ធផលប្រឡងផ្លូវការ', 'leaderboard': 'តារាងចំណាត់ថ្នាក់',
+        'honor-roll': 'តារាងកិត្តិយស', 'student': 'ការវិវត្តសិស្ស', 'tracking-book': 'សៀវភៅតាមដាន',
+        'id-card': 'កាតសម្គាល់ខ្លួនសិស្ស', 'settings': 'ការកំណត់ប្រព័ន្ធ', 'manage-users': 'គ្រប់គ្រងគណនីគ្រូ',
+        'general-info': 'ព័ត៌មានទូទៅ', 'schedule': 'កាលវិភាគសិក្សា', 'discipline': 'កំណត់ត្រាវិន័យ'
+    };
+    
+    const pageTitle = document.getElementById('page-title');
+    if(pageTitle) pageTitle.textContent = titles[tabId] || 'ប្រព័ន្ធគ្រប់គ្រង';
+
+    // 🔴 ចំណុចសំខាន់៖ ពេលចុចចូលផ្ទាំងទាំង ៣ នេះ ត្រូវបង្ខំឱ្យវាទាញឈ្មោះសិស្សចូលប្រអប់ជានិច្ច
+    if(tabId === 'student' || tabId === 'tracking-book' || tabId === 'id-card') {
+        populateProfileDropdown();
+    }
+
+    // ហៅមុខងារផ្សេងៗតាម Tab
+    if(tabId === 'detailed-sheet' && typeof loadDetailedSheet === 'function') loadDetailedSheet();
+    if(tabId === 'monthly-results' && typeof renderMonthlyResults === 'function') renderMonthlyResults();
+    if(tabId === 'dashboard' && typeof renderDashboardAdvanced === 'function') renderDashboardAdvanced();
+    if(tabId === 'manage-users' && typeof fetchUsers === 'function') fetchUsers();
+    if(tabId === 'leaderboard' && typeof renderLeaderboard === 'function') renderLeaderboard();
+    if(tabId === 'honor-roll' && typeof renderHonorRoll === 'function') renderHonorRoll();
+    if(tabId === 'schedule' && typeof loadScheduleData === 'function') loadScheduleData();
+    if(tabId === 'id-card' && typeof renderIDCard === 'function') renderIDCard();
+    if(tabId === 'student' && typeof renderStudentProfile === 'function') renderStudentProfile();
+    
+    if(tabId === 'discipline' && typeof populateDisciplineDropdown === 'function') {
+        populateDisciplineDropdown();
+        if(typeof renderDisciplineTable === 'function') renderDisciplineTable();
+    }
+    
+    if(tabId === 'attendance-report'){
+        const attMonthSel = document.getElementById('att-month-selector');
+        if(attMonthSel && !attMonthSel.value) {
+            let now = new Date();
+            attMonthSel.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0');
+        }
+        if(typeof handleDateChange === 'function') handleDateChange();
+    }
+
+    // លាក់ Sidebar ពេលចុចលើទូរស័ព្ទ
+    const aside = document.getElementById('main-sidebar');
+    if(aside && !aside.classList.contains('-translate-x-full') && window.innerWidth < 768) {
+        if(typeof toggleSidebar === 'function') toggleSidebar();
+    }
+    
+    if(typeof enableDragToScroll === 'function') setTimeout(enableDragToScroll, 100);
+}
+
+// ==========================================
+// មុខងារទាញបញ្ជីឈ្មោះសិស្សចូលប្រអប់ជ្រើសរើស (Dropdown)
+// ==========================================
+function populateProfileDropdown() {
+    const profileSelect = document.getElementById('profile-student-select');
+    const trackingSelect = document.getElementById('tracking-student-select');
+    const idSelect = document.getElementById('id-student-select');
+    
+    let optionsHtml = '<option value="">-- សូមជ្រើសរើសឈ្មោះសិស្ស --</option>';
+    let idOptionsHtml = '<option value="">ទាំងអស់ (All Students)</option>'; 
+    
+    // តម្រៀបឈ្មោះសិស្សតាមអក្ខរក្រម
+    if(AppState.currentClassDb && AppState.currentClassDb.length > 0) {
+        const sorted = [...AppState.currentClassDb].sort((a,b) => a.name.localeCompare(b.name, 'km'));
+        sorted.forEach(s => { 
+            let opt = `<option value="${s.id}">${s.name} (${s.gender})</option>`;
+            optionsHtml += opt; 
+            idOptionsHtml += opt;
+        });
+    }
+
+    // បញ្ចូលជម្រើសឈ្មោះទៅក្នុង HTML ទាំង៣ប្រអប់
+    if(profileSelect) profileSelect.innerHTML = optionsHtml; 
+    if(trackingSelect) trackingSelect.innerHTML = optionsHtml; 
+    if(idSelect) idSelect.innerHTML = idOptionsHtml; 
+}
+
+    // បញ្ចូល Option ទៅកាន់ HTML វិញ
+    if(profileSelect) { 
+        profileSelect.innerHTML = optionsHtml; 
+        if(currentVal1) profileSelect.value = currentVal1; 
+    }
+    if(trackingSelect) { 
+        trackingSelect.innerHTML = optionsHtml; 
+        if(currentVal2) trackingSelect.value = currentVal2; 
+    }
+    if(idSelect) { 
+        idSelect.innerHTML = idOptionsHtml; 
+        if(currentVal3) idSelect.value = currentVal3; 
+    }
+
+// ==========================================
+// មុខងារ ១: ការវិវត្តសិស្ស (Student Profile & Chart)
+// ==========================================
+function renderStudentProfile() {
+    const id = document.getElementById('profile-student-select').value;
+    const area = document.getElementById('student-profile-area');
+    const empty = document.getElementById('student-empty-state');
+    
+    if(!id) { 
+        if(area) area.classList.add('hidden'); 
+        if(empty) empty.classList.remove('hidden'); 
+        return; 
+    }
+
+    if(area) area.classList.remove('hidden'); 
+    if(empty) empty.classList.add('hidden');
+    
+    const s = AppState.currentClassDb.find(x => x.id === id);
+    if(!s) return;
+
+    // ដាក់រូបថត
+    const avatar = document.getElementById('student-avatar');
+    if(avatar) {
+        if(s.photo) {
+            avatar.innerHTML = `<img src="${s.photo}" class="w-full h-full object-cover">`;
+            avatar.className = `w-20 h-20 md:w-24 md:h-24 rounded-2xl mb-4 flex items-center justify-center shadow-lg transform rotate-3 overflow-hidden border-2 border-white`;
+        } else {
+            avatar.textContent = s.name.charAt(0);
+            avatar.className = `w-20 h-20 md:w-24 md:h-24 rounded-2xl text-white text-3xl font-bold mb-4 flex items-center justify-center shadow-lg transform rotate-3 ${s.gender==='ស'?'bg-pink-500':'bg-blue-500'}`;
+        }
+    }
+    
+    if(document.getElementById('profile-name')) document.getElementById('profile-name').textContent = s.name;
+    if(document.getElementById('profile-id-gender')) document.getElementById('profile-id-gender').textContent = `អត្តលេខ៖ ${s.id} | ភេទ៖ ${s.gender}`;
+
+    // ទាញពិន្ទុឆមាសទី១ មកបង្ហាញលម្អិត
+    const sc = s.scores['result_sem1'] || {total:0, avg:0, rank:0, grade:""};
+    if(document.getElementById('prof-total')) document.getElementById('prof-total').textContent = sc.total || '-';
+    if(document.getElementById('prof-avg')) document.getElementById('prof-avg').textContent = sc.avg || '-';
+    if(document.getElementById('prof-rank')) document.getElementById('prof-rank').textContent = sc.rank ? `#${sc.rank}` : '-';
+
+    // គូរក្រាហ្វិក (Line Chart) ការវិវត្ត
+    const canvas = document.getElementById('progressChart');
+    if(canvas) {
+        const ctx = canvas.getContext('2d');
+        if (charts.progress) charts.progress.destroy();
+
+        charts.progress = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['ធ្នូ', 'មករា', 'កុម្ភៈ', 'មីនា', 'ឆ.១', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'ឆ.២'],
+                datasets: [{
+                    label: 'មធ្យមភាគការសិក្សា',
+                    data: [
+                        s.scores.dec?.avg||0, s.scores.jan?.avg||0, s.scores.feb?.avg||0, s.scores.mar?.avg||0,
+                        s.scores.result_sem1?.avg||0,
+                        s.scores.may?.avg||0, s.scores.jun?.avg||0, s.scores.jul?.avg||0, s.scores.aug?.avg||0,
+                        s.scores.result_sem2?.avg||0
+                    ],
+                    borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, fill: true, tension: 0.3
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 10 } } }
+        });
+    }
+}
+
+// ==========================================
+// មុខងារ ២: សៀវភៅតាមដានលទ្ធផលសិស្ស (Tracking Book)
+// ==========================================
+function generateTrackingBook() {
+    const id = document.getElementById('tracking-student-select').value;
+    if(!id) return alert("សូមជ្រើសរើសសិស្សជាមុនសិន!");
+    
+    const s = AppState.currentClassDb.find(x => x.id === id);
+    if(!s) return;
+
+    document.getElementById('printable-report').classList.remove('hidden');
+    document.getElementById('tb-id').innerText = s.id;
+    document.getElementById('tb-name').innerText = s.name;
+    document.getElementById('tb-gender').innerText = s.gender;
+    
+    const tbody = document.getElementById('tb-scores-body');
+    tbody.innerHTML = '';
+    
+    // បញ្ចូលពិន្ទុរាល់ខែទៅក្នុងតារាង
+    constants.monthsList.forEach(m => {
+        const sc = s.scores[m];
+        if(sc && sc.avg > 0) {
+            let rowClass = (m === 'result_sem1' || m === 'result_sem2' || m === 'annual') ? 'bg-blue-50 font-bold' : '';
+            let label = constants.monthNamesKh[m] || m;
+            tbody.innerHTML += `
+                <tr class="${rowClass}">
+                    <td class="border border-gray-800 p-2 text-left px-4 font-bold text-gray-800">${label}</td>
+                    <td class="border border-gray-800 p-2">${sc.total}</td>
+                    <td class="border border-gray-800 p-2 font-bold text-blue-800 print-black-text">${sc.avg}</td>
+                    <td class="border border-gray-800 p-2 text-red-600 print-black-text">${sc.rank}</td>
+                    <td class="border border-gray-800 p-2 text-green-600 print-black-text">${sc.grade}</td>
+                    <td class="border border-gray-800 p-2"></td>
+                </tr>
+            `;
+        }
+    });
+    
+    if(tbody.innerHTML === '') {
+        tbody.innerHTML = `<tr><td colspan="6" class="border border-gray-800 p-4 text-gray-400">មិនទាន់មានទិន្នន័យពិន្ទុឡើយ</td></tr>`;
+    }
+}
 function renderDashboardStats() {
     const totalEl = document.getElementById('stat-total');
     if(totalEl) totalEl.innerHTML = `${AppState.currentClassDb.length}`;
