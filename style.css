@@ -1,267 +1,389 @@
-@import url('https://fonts.googleapis.com');
+/* ១. ទាញយក Web Fonts ជា Fallback ពី Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap');
 
-/* =========================================
-   ១. ការកំណត់ពណ៌គោល (Premium Modern Theme)
-   ========================================= */
-:root {
-    --primary-color: #4f46e5; 
-    --primary-hover: #4338ca;
-    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    
-    --bg-main: #f4f7f9;
-    --bg-card: #ffffff;
-    --bg-table-header: #f8fafc;
-    
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    
-    --border-soft: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    --shadow-btn: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
-    --focus-ring: 0 0 0 4px rgba(99, 102, 241, 0.15);
-    
-    --radius-card: 24px;
-    --radius-input: 12px;
-    --radius-btn: 14px;
+/* ២. កំណត់ Font សម្រាប់អត្ថបទ និងតួអក្សរទូទៅ (Body, Table, Input, Button) */
+*,
+body,
+input,
+select,
+button,
+textarea,
+p,
+span,
+td,
+th {
+  font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif !important;
+  line-height: 1.6;
 }
 
-/* =========================================
-   ២. ការកំណត់ទូទៅ (Global Styles)
-   ========================================= */
-*, *::before, *::after { box-sizing: border-box; }
-
-body {
-    font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif !important;
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    margin: 0; padding: 0;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-font-smoothing: antialiased;
+/* ៣. កំណត់ Font សម្រាប់ចំណងជើងធំៗទាំងអស់ (Headings) */
+h1, 
+h2, 
+h3, 
+h4, 
+h5, 
+h6,
+.font-moul,
+.title-moul {
+  font-family: 'Khmer OS Muol Light', 'Khmer OS Muol', 'Moul', serif !important;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
 }
 
-body, p, span, a, button, input, select, textarea, td, th, li, label, div, h3, h4, h5, h6, .font-siemreap {
-    font-family: 'Khmer OS Siemreap', sans-serif !important;
+/* ៤. ក្បាលតារាងបញ្ឈរសម្រាប់តារាងពិន្ទុ និងវត្តមាន */
+.header-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  padding: 6px 2px;
+  max-height: 110px;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: left;
+  font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif !important;
 }
 
-h1, h2, .font-moul { 
-    font-family: 'Khmer OS Muol light', serif !important; 
-    font-weight: normal !important; 
-    line-height: 1.6;
-    letter-spacing: 0.03em;
+/* ៥. កំណត់ Font ពិសេសលើចំណងជើងប័ណ្ណសរសើរ និងក្បាលលិខិតជាតិ */
+.cert-title {
+  font-family: 'Khmer OS Muol Light', 'Khmer OS Muol', 'Moul', serif !important;
 }
 
-/* =========================================
-   ៣. ផ្ទាំង Layout & កាត (Cards & Depth)
-   ========================================= */
-#auth-screen { padding: 1rem; }
-#login-container, #register-container {
-    max-width: 100%; width: 100%; margin: 0 auto;
-}
-@media (min-width: 640px) {
-    #login-container, #register-container { width: 420px; }
+@font-face {
+    font-family: 'TACTENG';
+    /* សូមប្រាកដថាលោកគ្រូមាន File Font នេះនៅក្នុង Folder របស់ Project */
+    src: url('../fonts/TACTENG.TTF') format('truetype'); 
 }
 
-.bg-white.rounded-3xl {
-    background-color: var(--bg-card) !important;
-    box-shadow: var(--shadow-card) !important; 
-    border: 1px solid #ffffff !important;
-    border-radius: var(--radius-card) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.bg-white.rounded-3xl:hover {
-    box-shadow: var(--shadow-hover) !important;
-    transform: translateY(-2px);
-}
-
-/* =========================================
-   ៤. ធាតុបញ្ចូលទិន្នន័យ (Modern Inputs & Buttons)
-   ========================================= */
-input, select, textarea {
-    border-radius: var(--radius-input) !important;
-    background-color: #f8fafc !important;
-    border: 1.5px solid var(--border-soft) !important;
-    transition: all 0.3s ease !important;
-    color: var(--text-main);
-    padding: 0.75rem 1rem !important;
-}
-input:hover, select:hover, textarea:hover { border-color: #cbd5e1 !important; }
-input:focus, select:focus, textarea:focus {
-    background-color: var(--bg-card) !important;
-    border-color: var(--primary-color) !important;
-    box-shadow: var(--focus-ring) !important; outline: none;
-}
-
-button { border-radius: var(--radius-btn) !important; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; font-weight: 600; }
-button.bg-blue-600 { background: var(--primary-gradient) !important; border: none !important; box-shadow: var(--shadow-sm); }
-button.bg-blue-600:hover:not(:disabled) { box-shadow: var(--shadow-btn) !important; transform: translateY(-2px); }
-button:active:not(:disabled) { transform: scale(0.96); }
-
-/* =========================================
-   ៥. ម៉ឺនុយចំហៀង (Sidebar Menu)
-   ========================================= */
-body.sidebar-open { overflow: hidden; }
-@media (min-width: 769px) { aside { transform: translateX(0) !important; } }
-
-.nav-item {
-    transition: all 0.3s ease !important; border-radius: 12px !important; margin: 4px 12px !important;
-    width: calc(100% - 24px) !important; color: var(--text-muted);
-}
-.nav-item:hover:not(.nav-active) { background-color: #f1f5f9; color: var(--text-main); transform: translateX(4px); }
-.nav-active {
-    background: linear-gradient(90deg, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0.05) 100%) !important;
-    color: var(--primary-color) !important; font-weight: 700; position: relative;
-}
-.nav-active::before {
-    content: ''; position: absolute; left: -12px; top: 15%; height: 70%; width: 4px;
-    background-color: var(--primary-color); border-radius: 0 6px 6px 0; box-shadow: 2px 0 8px rgba(79, 70, 229, 0.5);
-}
-
-/* =========================================
-   ៦. តារាងទិន្នន័យ (Clean & Modern Tables)
-   ========================================= */
-.overflow-x-auto { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 8px; }
-.grade-table, .report-table, .schedule-table { border-collapse: separate; border-spacing: 0; width: 100%; border-radius: 12px; overflow: hidden; }
-.grade-table th, .grade-table td, .report-table th, .report-table td, .schedule-table th, .schedule-table td {
-    border-bottom: 1px solid var(--border-soft); border-right: 1px solid var(--border-soft); padding: 14px 12px; text-align: center; font-size: 13px; white-space: nowrap;
-}
-.grade-table th, .report-table th, .schedule-table th {
-    background-color: var(--bg-table-header) !important; color: #334155 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;
-}
-.report-table tbody tr, .grade-table tbody tr, .schedule-table tbody tr { transition: background-color 0.2s ease, transform 0.2s ease; }
-.report-table tbody tr:hover, .grade-table tbody tr:hover, .schedule-table tbody tr:hover { background-color: #f8fafc !important; }
-
-.grade-input {
-    width: 55px; height: 36px; text-align: center; border: 1px solid transparent !important; border-radius: 8px !important;
-    font-size: 14px; font-weight: 600; background-color: transparent !important; transition: all 0.2s ease;
-}
-.grade-input:hover { border: 1px solid #cbd5e1 !important; background-color: #fff !important; }
-.grade-input:focus { border: 1px solid var(--primary-color) !important; background-color: #fff !important; }
-
-.att-input {
-    width: 34px; height: 34px; text-align: center; border: none; border-radius: 8px !important;
-    background: transparent !important; font-size: 13px; font-weight: bold; text-transform: uppercase;
-}
-.att-input:hover { background-color: rgba(0,0,0,0.03) !important; }
-.att-input:focus { background-color: white !important; box-shadow: var(--focus-ring) !important; }
-
-/* =========================================
-   ៧. មុខងារ Scroll & Sticky 
-   ========================================= */
-.table-scroll-wrapper {
-    max-height: 65vh; overflow: auto; position: relative; border-radius: 16px; border: 1px solid var(--border-soft); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-}
-.table-scroll-wrapper thead { position: sticky; top: 0; z-index: 30; }
-
-.sticky-cols th:nth-child(1), .sticky-cols td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 40px; background-color: #fff; }
-.sticky-cols th:nth-child(2), .sticky-cols td:nth-child(2) { position: sticky; left: 40px; z-index: 10; min-width: 150px; background-color: #fff; }
-.sticky-cols th:nth-child(3), .sticky-cols td:nth-child(3) { position: sticky; left: 190px; z-index: 10; min-width: 50px; background-color: #fff; border-right: 2px solid #cbd5e1; }
-
-.sticky-cols-students th:nth-child(1), .sticky-cols-students td:nth-child(1) { position: sticky; left: 0; z-index: 10; min-width: 40px; background-color: #fff; }
-.sticky-cols-students th:nth-child(2), .sticky-cols-students td:nth-child(2) { position: sticky; left: 40px; z-index: 10; min-width: 50px; background-color: #fff; }
-.sticky-cols-students th:nth-child(3), .sticky-cols-students td:nth-child(3) { position: sticky; left: 90px; z-index: 10; min-width: 80px; background-color: #fff; border-right: 2px solid #cbd5e1; }
-
-/* =========================================
-   ៨. រចនា Scrollbar និង Toast Notification
-   ========================================= */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-#toast {
-    visibility: hidden; min-width: 300px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
-    color: #fff; text-align: center; border-radius: 50px; padding: 14px 24px; position: fixed; z-index: 4000; left: 50%; transform: translateX(-50%);
-    bottom: 30px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-#toast.show { visibility: visible; bottom: 40px; opacity: 1; }
-
-/* =========================================
-   ៩. កាលវិភាគ និង កំណត់ត្រាវិន័យ (Badges) & Print Spacer
-   ========================================= */
-.schedule-table input {
-    width: 100%; text-align: center; background: transparent !important; border: none !important;
-    padding: 8px 4px; font-size: 13px; font-family: inherit; color: var(--text-main); font-weight: 600; transition: all 0.3s ease !important;
-}
-.schedule-table input:focus { background-color: #eff6ff !important; box-shadow: 0 0 0 2px var(--primary-color) inset !important; border-radius: 8px !important; }
-
-.badge-good { background-color: #dcfce7; color: #059669; border: 1px solid #a7f3d0; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 11px; display: inline-block; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1); }
-.badge-bad { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 11px; display: inline-block; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1); }
-
-.print-spacer { width: 100%; height: 10px; position: relative; background-color: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.4); border-radius: 8px; margin: 5px 0; transition: background 0.2s; user-select: none; }
-.print-spacer:hover { background-color: rgba(59, 130, 246, 0.15); }
-.print-spacer:hover .resize-handle { opacity: 1; }
-.resize-handle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #3b82f6; color: white; padding: 4px 15px; border-radius: 20px; font-size: 11px; cursor: ns-resize; opacity: 0.6; transition: opacity 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); pointer-events: none; }
-
-/* =========================================
-   ១០. ការកំណត់សម្រាប់ការបោះពុម្ព (Print Styles)
-   ========================================= */
+/* ==========================================
+   PRINT ONLY WORKSHEET (ព្រីនតែសន្លឹកការងារសុទ្ធ)
+   ========================================== */
 @media print {
-    body.print-portrait { size: A4 portrait; margin: 1cm; }
-    body.print-landscape { size: A4 landscape; margin: 1cm; } 
-    
-    html, body, #main-app, main, .overflow-y-auto, .table-scroll-wrapper, .overflow-hidden {
-        height: auto !important; min-height: auto !important; max-height: none !important; width: 100% !important; overflow: visible !important; position: static !important; display: block !important; background-color: #ffffff !important; margin: 0 !important; padding: 0 !important;
+  @page {
+    size: A4 portrait; /* ក្រដាស A4 ផ្តេក */
+    margin: 6mm 8mm;    /* រឹមក្រដាសតូចល្មមស្អាត */
+  }
+
+  /* លាក់ធាតុទាំងអស់លើគេហទំព័រជាមុន */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* បង្ហាញតែសន្លឹកការងារណាដែលមាន class "print-active-sheet" និងកូនៗរបស់វា */
+  .print-active-sheet,
+  .print-active-sheet * {
+    visibility: visible !important;
+  }
+
+  /* រុញសន្លឹកការងារមកដាក់លើកំពូលទំព័រ A4 ឱ្យពេញ */
+  .print-active-sheet {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  /* លុប Border ប្រអប់វាយលេខ/អក្សរពេលព្រីន */
+  .print-active-sheet input {
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* បង្ខំឱ្យចេញពណ៌ Background ពណ៌បៃតង និងលឿងលើក្រដាស */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+}
+
+/* បន្ថែមនៅខាងក្រោមគេនៃ style.css របស់អ្នក */
+
+/* Custom Scrollbar ពណ៌ស្រទន់ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; 
+}
+
+
+/* រចនាបថតារាងឱ្យមានពណ៌ឆ្លាស់គ្នា (Zebra Stripes) និង Hover បែបទំនើប */
+tbody tr {
+  transition: all 0.2s ease-in-out;
+}
+tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+tbody tr:hover {
+  background-color: #eef2ff !important; /* ពណ៌ខៀវស្រាលពេល Hover */
+  transform: scale(1.001);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Glassmorphism Effect សម្រាប់ Sidebar Overlay */
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+/* កំណត់អក្សរឱ្យវិលបញ្ឈរ ៩០ ដឺក្រេ និងរៀបចំឱ្យចំកណ្ដាល */
+.header-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  margin: 0 auto;
+  padding: 8px 2px;
+  line-height: 1.2;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* កំណត់កម្ពស់ជួរដេកមុខវិជ្ជារង ដើម្បីកុំឱ្យទើសឬបាំងជើងអក្សរ */
+.vertical-subhead th {
+  height: 125px;
+  vertical-align: bottom;
+  padding-bottom: 6px !important;
+}
+/* ==========================================
+   ឯកសារ styles.css - រចនាបថទូទៅនៃប្រព័ន្ធសាលារៀន
+   ========================================== */
+
+/* ១. Import ក្បួនអក្សរខ្មែរពី Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap');
+
+/* ២. ការកំណត់លំនាំដើម */
+body {
+    font-family: 'Siemreap', sans-serif;
+    background-color: #f8fafc; /* ព៌ណប្រផេះស្រាល */
+    -webkit-font-smoothing: antialiased;
+    color: #1e293b;
+}
+
+.font-moul {
+    font-family: 'Moul', serif !important;
+}
+
+/* ៣. Custom Scrollbar (របារអូសចុះឡើង) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Scrollbar រាងធំបន្តិចសម្រាប់តារាងធំៗ */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+}
+
+/* ៤. ចលនា (Animations) សម្រាប់ភាពរស់រវើក */
+.animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
     }
-    aside, header, nav, button, .no-print, #sidebar-overlay, #toast, #auth-screen, #landing-screen, .print-spacer, .resize-handle {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ៥. រចនាបថសម្រាប់ Canva Engine (ឧបករណ៍រចនាអូសរំកិល) */
+.canva-el {
+    transition: box-shadow 0.2s ease, outline 0.2s ease;
+  -webkit-user-select: none;
+    user-select: none; /* ការពារកុំឱ្យ highlight អក្សរពេលកំពុង Drag */
+}
+
+/* ពេល Hover លើអក្សរក្នុង Canva Mode */
+.canva-el:hover {
+    outline: 2px dashed #93c5fd;
+    outline-offset: 2px;
+    cursor: grab;
+}
+
+/* ពេលកំពុងចុចសង្កត់ (Dragging) */
+.canva-el:active {
+    cursor: grabbing !important;
+}
+
+/* ក្បាលតារាងសរសេរបញ្ឈរ (Vertical Headers) សម្រាប់តារាងពិន្ទុ */
+.header-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    padding: 8px 2px;
+    margin: auto;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* ៦. ការកំណត់សម្រាប់ពេលបោះពុម្ព (Print Settings) */
+@media print {
+    /* លាក់អ្វីដែលមិនចាំបាច់ពេល Print */
+    .no-print, nav, aside, header, button, .shadow-xl {
         display: none !important;
     }
-    .hidden { display: none !important; }
-    .bg-gray-50 { background-color: #ffffff !important; }
-    .print-area, .bg-white, .rounded-3xl, .shadow-sm { box-shadow: none !important; border: none !important; border-radius: 0 !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
-    
-    table { page-break-inside: auto; border-collapse: collapse !important; width: 100% !important; }
-    tr { page-break-inside: avoid; page-break-after: auto; }
-    thead { display: table-header-group; }
-    thead th, .sticky-cols th, .sticky-cols td, .sticky-cols-students th, .sticky-cols-students td { position: static !important; box-shadow: none !important; background: transparent !important; }
-    
-    .print-table th, .print-table td, .grade-table th, .grade-table td, .report-table th, .report-table td, .schedule-table th, .schedule-table td {
-        border: 1px solid #000000 !important; color: #000000 !important; font-size: 11px !important; padding: 6px !important;
+
+    /* ដក Background ពណ៌ស និង Margin របស់ Browser ចោល */
+    body, html {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
     }
-    .schedule-table input { border: none !important; background: transparent !important; box-shadow: none !important; color: #000 !important; }
-    
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .print-black-text { color: #000000 !important; background: none !important; -webkit-text-fill-color: #000000 !important; text-shadow: none !important; -webkit-text-stroke: 0 !important; }
-    
-    #all-id-cards-container { display: grid !important; grid-template-columns: repeat(2, 85.6mm) !important; gap: 5mm !important; justify-content: center !important; }
-    .id-card-box { page-break-inside: avoid !important; break-inside: avoid !important; }
 
-    /* Khmer Font Configuration */
-:root {
-    --font-siemreap: 'Khmer OS Siemreap', sans-serif;
-    --font-moul: 'Khmer OS Muol Light', serif;
+    /* ធ្វើឱ្យ Background ពណ៌ចេញច្បាស់ពេល Print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* លុបស៊ុមនិងស្រមោលក្រដាសសិប្បនិម្មិតចេញ */
+    #printSeatingTarget, 
+    #print-card-target, 
+    #top5HonorPrintArea, 
+    .print\:shadow-none {
+        box-shadow: none !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+}
+/* បង្កើតអក្សរបញ្ឈរសម្រាប់ក្បាលតារាង */
+.header-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    padding: 8px 2px;
+    height: 110px; /* កំណត់កម្ពស់ក្បាលតារាងនៅទីនេះ */
+    text-align: center;
+    vertical-align: middle;
+    margin: 0 auto;
 }
 
-body {
-    font-family: var(--font-siemreap);
-}
-
-.font-moul { font-family: var(--font-moul); font-weight: normal; }
-.font-siemreap { font-family: var(--font-siemreap); }
-
-
-
-/* Print Styling */
+/* រចនាបថជំនួយសម្រាប់បោះពុម្ព (Print) */
 @media print {
+    /* លុបពាក្យ size ចេញ ទុកតែ margin ដើម្បីឱ្យ Browser បើកសិទ្ធិឱ្យយើងរើស Landscape/Portrait ដោយខ្លួនឯង */
+    @page { margin: 10mm; } 
+    
     .no-print { display: none !important; }
-    body { background: white; overflow: visible; }
-    main { overflow: visible !important; }
-    .tab-view { display: block !important; }
-    table { width: 100% !important; border-collapse: collapse; }
-    th, td { border: 1px solid black !important; padding: 4px !important; color: black !important; }
+    
+    /* ធ្វើឱ្យ Input box ក្លាយជាអត្ថបទធម្មតា គ្មានស៊ុម គ្មាន Background */
+    .score-input { 
+        border: none !important; 
+        background: transparent !important; 
+        -moz-appearance: textfield !important; 
+        appearance: none !important; 
+        padding: 0 !important;
+        color: black !important;
+    }
+    
+    /* លាក់សញ្ញាព្រួញឡើងចុះរបស់ Input Number ពេល Print */
+    .score-input::-webkit-outer-spin-button,
+    .score-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    
+    /* លាក់សញ្ញាឡើងចុះ (Spin Button) របស់ Input Number */
+    .score-input::-webkit-outer-spin-button,
+    .score-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* ធានាថា Background Color ដែលដាក់ inline style ត្រូវបានចេញមកទាំងអស់ */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
-/* លាក់សញ្ញាព្រួញឡើងចុះក្នុងប្រអប់ពិន្ទុ ដើម្បីកុំឱ្យទើសភ្នែក */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
+/* ========================================================
+   Global Mobile Scrolling & Custom Scrollbar
+======================================================== */
 
-/* ពណ៌ពេលចុចលើប្រអប់បញ្ចូលទិន្នន័យវត្តមាន និងពិន្ទុ (Highlight ពណ៌ខៀវ) */
-.att-input, .grade-input { transition: all 0.2s; cursor: pointer; }
-.att-input:focus, .grade-input:focus {
-    background-color: #dbeafe !important; /* ផ្ទៃពណ៌ខៀវខ្ចី */
-    box-shadow: inset 0 0 0 2px #3b82f6; /* បន្ទាត់គែមពណ៌ខៀវ */
-    border-radius: 6px;
+/* ធ្វើឱ្យការអូសលើទូរសព្ទ (ពិសេស iOS/iPhone) មានភាពរលូន (Smooth) */
+.custom-scrollbar {
+    -webkit-overflow-scrolling: touch; 
+    scrollbar-width: thin; /* សម្រាប់ Firefox */
 }
 
+/* ទំហំរបស់របារ Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;  /* កម្រាស់បញ្ឈរ */
+    height: 8px; /* កម្រាស់ផ្តេក (សំខាន់សម្រាប់តារាង) */
+}
+
+/* ផ្ទៃខាងក្រោយរបារ */
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc; 
+    border-radius: 10px;
+}
+
+/* ពណ៌របស់ដុំអូស */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 10px;
+}
+
+/* ពណ៌ដុំអូសពេលយកកណ្តុរទៅចង្អុល */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+
+/* បង្ខំឱ្យតារាងមិនបាក់បន្ទាត់ពេលមើលលើទូរសព្ទ */
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x; /* អនុញ្ញាតឱ្យអូសឆ្វេងស្តាំបានរលូន */
+}
+
+/* បន្ថែមក្នុងប្លុក <style> របស់អ្នក */
+.cell-selected {
+    background-color: #dbeafe !important; /* ពណ៌ខៀវស្រាល bg-blue-100 */
+    box-shadow: inset 0 0 0 2px #3b82f6 !important; /* ស៊ុមពណ៌ខៀវខាងក្នុង */
+    color: #1e40af !important;
+    transition: all 0.1s ease;
+}
+/* បិទការ Select Text ធម្មតា ពេលកំពុងអូសម៉ៅស៍លើតារាង */
+.no-text-select {
+    user-select: none;
+    -webkit-user-select: none;
 }

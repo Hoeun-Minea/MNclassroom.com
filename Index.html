@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន | Classroom Management System</title>
+  
+  <!-- Fonts ពី Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3a8a">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', /* បើកមុខងារ Dark Mode */
+      theme: { extend: { fontFamily: { siemreap: ['Siemreap', 'sans-serif'], moul: ['Moul', 'sans-serif'] } } }
+    }
+  </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- Libraries ផ្សេងៗ -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Library សម្រាប់ Export PDF គុណភាពខ្ពស់ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- សម្រាប់អាននិងបង្កើតឯកសារ Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <style>
+    /* Custom Animations & Scrollbar */
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+
+    .header-vertical {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+      padding: 8px 2px;
+      margin: auto;
+      height: 115px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* ========================================================
+      Global Mobile Scrolling & Custom Scrollbar
+    ======================================================== */
+
+    /* ធ្វើឱ្យការអូសលើទូរសព្ទ (ពិសេស iOS/iPhone) មានភាពរលូន (Smooth) */
+    .custom-scrollbar {
+        -webkit-overflow-scrolling: touch; 
+        scrollbar-width: thin; /* សម្រាប់ Firefox */
+    }
+
+    /* ទំហំរបស់របារ Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;  /* កម្រាស់បញ្ឈរ */
+        height: 8px; /* កម្រាស់ផ្តេក (សំខាន់សម្រាប់តារាង) */
+    }
+
+    /* ផ្ទៃខាងក្រោយរបារ */
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f8fafc; 
+        border-radius: 10px;
+    }
+
+    /* ពណ៌របស់ដុំអូស */
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 10px;
+    }
+
+    /* ពណ៌ដុំអូសពេលយកកណ្តុរទៅចង្អុល */
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8; 
+    }
+
+    /* បង្ខំឱ្យតារាងមិនបាក់បន្ទាត់ពេលមើលលើទូរសព្ទ */
+    .table-responsive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        touch-action: pan-x; /* អនុញ្ញាតឱ្យអូសឆ្វេងស្តាំបានរលូន */
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased font-siemreap overflow-hidden dark:bg-slate-900 dark:text-slate-200 transition-colors duration-300">
+  
+    <!-- ========================================== -->
+    <!-- ផ្ទាំងទ្វារធំ (Dynamic Landing Screen) -->
+    <!-- ========================================== -->
+    <div id="landing-screen" class="fixed inset-0 z-[9000] flex items-center justify-center bg-slate-50 font-siemreap overflow-y-auto custom-scrollbar">
+        
+        <!-- ផ្ទៃខាងក្រោយបែបចលនា (Animated Blobs Background) -->
+        <div class="fixed top-[-10%] left-[-10%] w-96 h-96 bg-indigo-400/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div class="fixed top-[20%] right-[-10%] w-96 h-96 bg-emerald-400/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 2s;"></div>
+        <div class="fixed bottom-[-20%] left-[20%] w-96 h-96 bg-pink-400/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 4s;"></div>
+
+        <!-- ផ្ទាំងចូលគណនី (Login Box) -->
+        <div id="authLoginBox" class="bg-white/90 backdrop-blur-xl w-full max-w-md rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/50 p-8 md:p-10 text-center transform transition-all duration-500 relative m-4">
+            
+            <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 text-white text-3xl shadow-lg shadow-indigo-200 transform rotate-3 hover:rotate-0 transition duration-300">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            
+            <h2 class="font-moul text-2xl text-slate-800 mb-2 drop-shadow-sm">ប្រព័ន្ធគ្រប់គ្រងសាលា</h2>
+            <p class="text-slate-500 text-[13px] mb-8 font-bold">សូមស្វាគមន៍! សូមបញ្ចូលគណនីដើម្បីបន្ត</p>
+
+            <form onsubmit="window.handleLogin(event)" class="space-y-5 text-left">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">ឈ្មោះគណនី ឬ លេខសម្គាល់គ្រូ</label>
+                    <div class="relative group">
+                        <i class="fa-regular fa-user absolute left-4 top-3.5 text-slate-400 text-sm group-focus-within:text-indigo-600 transition-colors duration-300"></i>
+                        <input type="text" id="usernameOrPhone" required placeholder="ឧ. TCH-1234" class="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all shadow-inner">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">លេខសម្ងាត់</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-lock absolute left-4 top-3.5 text-slate-400 text-sm group-focus-within:text-indigo-600 transition-colors duration-300"></i>
+                        <input type="password" id="password" required placeholder="••••••••" class="w-full pl-11 pr-11 py-3 bg-slate-50/50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all shadow-inner">
+                        <button type="button" onclick="window.togglePasswordVisibility('password', 'eyeIconLogin')" class="absolute right-4 top-3.5 text-slate-400 hover:text-indigo-600 transition outline-none"><i id="eyeIconLogin" class="fa-regular fa-eye"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-2 hidden">
+                    <!-- ទុកសម្រាប់មុខងារអនាគត (ភ្លេចលេខសម្ងាត់) -->
+                </div>
+
+                <button type="submit" id="btnLogin" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3.5 rounded-2xl transition-all shadow-xl shadow-indigo-200 transform hover:-translate-y-1 mt-6 flex items-center justify-center gap-2 outline-none text-[15px]">
+                    <i class="fa-solid fa-right-to-bracket"></i> ចូលប្រព័ន្ធ
+                </button>
+            </form>
+
+            <p class="text-center text-[13px] text-slate-500 mt-8 font-bold">
+                មិនទាន់មានគណនីមែនទេ? 
+                <button onclick="window.toggleAuthBox('register')" class="text-indigo-600 hover:text-indigo-800 transition outline-none ml-1 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-indigo-600 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
+                    ចុះឈ្មោះថ្មី
+                </button>
+            </p>
+        </div>
+
+        <!-- ផ្ទាំងចុះឈ្មោះ (Register Box - លាក់ជាបណ្តោះអាសន្ន) -->
+        <div id="authRegisterBox" class="bg-white/90 backdrop-blur-xl w-full max-w-md rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/50 p-8 md:p-10 text-center transform transition-all duration-500 relative m-4 hidden">
+            
+            <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-[1.2rem] flex items-center justify-center mx-auto mb-4 text-white text-2xl shadow-lg shadow-emerald-200 transform -rotate-3 hover:rotate-0 transition duration-300">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            
+            <h2 class="font-moul text-xl text-slate-800 mb-1">បង្កើតគណនីថ្មី</h2>
+            <p class="text-slate-500 text-[12px] mb-6 font-bold">សុវត្ថិភាពទិន្នន័យជារឿងចម្បងរបស់យើង</p>
+
+            <form onsubmit="window.handleRegister(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">ឈ្មោះ និងនាមត្រកូល *</label>
+                    <div class="relative group">
+                        <i class="fa-regular fa-id-card absolute left-4 top-3 text-slate-400 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                        <input type="text" id="regFullName" required placeholder="ឧ. សុខ សាន្ត" class="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:bg-white transition-all shadow-inner font-moul">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">ឈ្មោះគណនី (Username) *</label>
+                    <div class="relative group">
+                        <i class="fa-regular fa-user absolute left-4 top-3 text-slate-400 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                        <input type="text" id="regUsername" required placeholder="ឧ. soksan26" class="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:bg-white transition-all shadow-inner lowercase">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">លេខសម្ងាត់ (Password) *</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-lock absolute left-4 top-3 text-slate-400 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                        <input type="password" id="regPassword" required minlength="8" placeholder="យ៉ាងតិច ៨ តួអក្សរ" class="w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:bg-white transition-all shadow-inner" oninput="window.checkPasswordStrength(this.value)">
+                        <button type="button" onclick="window.togglePasswordVisibility('regPassword', 'eyeIcon1')" class="absolute right-4 top-3 text-slate-400 hover:text-emerald-600 transition outline-none"><i id="eyeIcon1" class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <!-- របារសុវត្ថិភាពលេខសម្ងាត់ -->
+                    <div class="mt-2 flex gap-1 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div id="strBar1" class="h-full w-1/3 bg-slate-200 transition-all duration-300"></div>
+                        <div id="strBar2" class="h-full w-1/3 bg-slate-200 transition-all duration-300"></div>
+                        <div id="strBar3" class="h-full w-1/3 bg-slate-200 transition-all duration-300"></div>
+                    </div>
+                    <p id="strText" class="text-[9px] text-slate-400 mt-1 font-bold">កម្រិតសុវត្ថិភាព: មិនទាន់មាន</p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">បញ្ជាក់លេខសម្ងាត់ *</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-shield-check absolute left-4 top-3 text-slate-400 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                        <input type="password" id="regConfirmPassword" required minlength="8" placeholder="វាយលេខសម្ងាត់ម្ដងទៀត" class="w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:bg-white transition-all shadow-inner">
+                        <button type="button" onclick="window.togglePasswordVisibility('regConfirmPassword', 'eyeIcon2')" class="absolute right-4 top-3 text-slate-400 hover:text-emerald-600 transition outline-none"><i id="eyeIcon2" class="fa-regular fa-eye"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 mt-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                    <input type="checkbox" id="regTerms" required class="mt-0.5 border-slate-300 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer w-4 h-4">
+                    <label for="regTerms" class="text-[10px] md:text-[11px] text-slate-600 leading-relaxed cursor-pointer font-bold">ខ្ញុំយល់ព្រមតាម <span class="text-emerald-600">លក្ខខណ្ឌប្រើប្រាស់</span> និងធានាថាទិន្នន័យសិស្សត្រូវបានរក្សាការសម្ងាត់។</label>
+                </div>
+
+                <!-- បន្ថែមកូដនេះនៅក្រោមប្រអប់ Username ក្នុង form register -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">អ៊ីមែល ឬ លេខទូរស័ព្ទ *</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-envelope absolute left-4 top-3 text-slate-400 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                        <input type="text" id="regContact" required placeholder="ឧ. sok@gmail.com ឬ 012345678" class="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:bg-white transition-all shadow-inner">
+                    </div>
+                </div>
+
+                <button type="submit" id="btnRegister" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-2xl transition-all shadow-xl shadow-emerald-200 transform hover:-translate-y-1 mt-6 flex items-center justify-center gap-2 outline-none text-[14px]">
+                    <i class="fa-solid fa-user-plus"></i> បង្កើតគណនីឥឡូវនេះ
+                </button>
+            </form>
+
+            <p class="text-center text-[12px] text-slate-500 mt-6 font-bold">
+                មានគណនីរួចហើយ? 
+                <button onclick="window.toggleAuthBox('login')" class="text-emerald-600 hover:text-emerald-800 transition outline-none ml-1 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-emerald-600 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
+                    ចូលគណនី
+                </button>
+            </p>
+        </div>
+    </div>
+
+  <!-- ==========================================
+       ៣. ផ្ទាំងកម្មវិធីមេ (APP VIEW)
+       ========================================== -->
+  <div id="appView" class="hidden flex h-screen overflow-hidden fade-in">
+    
+    <!-- Sidebar -->
+    <aside id="appSidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 shadow-2xl relative transition-all duration-300 ease-in-out z-20 print:hidden">
+      <!-- Header / Logo Area -->
+      <div class="h-20 p-4 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg text-xl border border-white/20">
+             <img id="sidebarLogo" src="https://via.placeholder.com/150?text=Logo" alt="និមិត្តសញ្ញាសាលា" class="w-full h-full object-contain rounded-xl hidden" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+             <span>🏫</span>
+          </div>
+          <div class="sidebar-text transition-opacity duration-300 whitespace-nowrap">
+            <h3 id="sidebarSchoolName" class="font-moul text-white text-[13px] leading-tight w-[130px] truncate">សាលាគំរូ</h3>
+            <span id="sidebarAcademicYear" class="text-[10px] text-indigo-300 font-bold uppercase">ឆ្នាំសិក្សា ២០២៦-២០២៧</span>
+          </div>
+        </div>
+        <button type="button" onclick="toggleSidebar()" title="បើក/បិទម៉ឺនុយ" aria-label="បើក/បិទម៉ឺនុយ" class="text-white/70 hover:text-white p-2 rounded-lg hover:bg-white/10 transition shrink-0 outline-none"><i class="fa-solid fa-bars"></i></button>
+      </div>
+
+      <!-- Navigation Area -->
+      <nav class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1.5 text-[13px] font-semibold">
+        
+        <button onclick="switchView('dashboard')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn bg-white/10 text-white border-l-4 border-indigo-400" id="nav-dashboard">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-blue-400 transition-transform">📊</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">ផ្ទាំងគ្រប់គ្រង</span>
+        </button>
+        
+        <button onclick="switchView('students')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn" id="nav-students">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-emerald-400 transition-transform">👥</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">គ្រប់គ្រងសិស្ស</span>
+        </button>
+        
+        <button onclick="switchView('attendance')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn" id="nav-attendance">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-rose-400 transition-transform">📅</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">កត់វត្តមានប្រចាំថ្ងៃ</span>
+        </button>
+        
+        <button onclick="switchView('scores')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn" id="nav-scores">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-amber-400 transition-transform">📝</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">បញ្ចូលពិន្ទុ & និទ្ទេស</span>
+        </button>
+
+        <div class="sidebar-text pt-4 mt-2 mb-2 border-t border-white/10 mx-3"></div>
+
+        <button onclick="switchView('library')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn" id="nav-library">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-fuchsia-400 transition-transform">📚</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">បណ្ណាល័យ & ទ្រព្យ</span>
+        </button>
+        <button onclick="switchView('reports')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group nav-btn" id="nav-reports">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-fuchsia-400 transition-transform">📚</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">របាយការណ៍</span>
+        </button>
+        
+
+        <button onclick="switchView('settings')" class="w-full flex items-center px-3 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all text-left group mt-4 nav-btn" id="nav-settings">
+          <span class="text-xl w-8 text-center shrink-0 group-hover:scale-110 group-hover:text-slate-200 transition-transform">⚙️</span>
+          <span class="sidebar-text ml-2 whitespace-nowrap">ការកំណត់ (Settings)</span>
+        </button>
+
+      </nav>
+
+      <!-- User Info & Logout -->
+      <div class="p-4 bg-black/30 border-t border-white/5 shrink-0 flex items-center justify-between">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div class="w-9 h-9 shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 flex items-center justify-center text-white text-sm shadow-md">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <div class="sidebar-text whitespace-nowrap">
+            <div id="navUserName" class="text-sm font-bold text-white truncate w-28">...</div>
+            <div id="navUserId" class="text-[10px] text-emerald-300 uppercase tracking-widest font-bold font-mono">TCH-000</div>
+          </div>
+        </div>
+        <button type="button" onclick="handleLogout()" title="ចាកចេញ" class="p-2 text-rose-400 hover:text-white hover:bg-rose-500 rounded-xl transition-colors shrink-0 outline-none"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-y-auto relative w-full h-full bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+      
+      <!-- Top Header -->
+      <header class="bg-white px-4 md:px-6 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3 sticky top-0 z-10 shadow-sm no-print dark:bg-slate-800 dark:border-slate-700">
+         <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" title="បើកម៉ឺនុយ" aria-label="បើកម៉ឺនុយ" class="md:hidden text-slate-500 hover:text-indigo-600 text-xl outline-none"><i class="fa-solid fa-bars"></i></button>
+            <h2 id="pageTitleHeader" class="text-lg font-bold text-slate-800 dark:text-slate-200 font-moul">ផ្ទាំងគ្រប់គ្រង (Dashboard)</h2>
+         </div>
+         
+         <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            
+            <!-- ជម្រើសឆ្នាំសិក្សា (Academic Year Dropdown) -->
+            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-2 sm:px-3 py-1.5 shadow-sm">
+               <i class="fa-solid fa-graduation-cap text-indigo-500 dark:text-indigo-400 text-xs"></i>
+               <select id="globalAcademicYear" onchange="window.handleYearChange()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer font-siemreap">
+                  <option value="2025-2026">២០២៥-២០២៦</option>
+                  <option value="2026-2027" selected>២០២៦-២០២៧ (បច្ចុប្បន្ន)</option>
+                  <option value="2027-2028">២០២៧-២០២៨ (បន្ទាប់)</option>
+               </select>
+            </div>
+           <button onclick="window.fetchAllData(this)" class="px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-300 to-teal-700 hover:from-emerald-600 text-white rounded-xl text-xs font-bold items-center gap-2 shadow-sm transition outline-none">
+              <i class="fa-solid fa-arrows-rotate text-slate-500"></i> ទាញទិន្នន័យ
+          </button>
+            <!-- Sync Button -->
+            <button onclick="syncDataToServer()" id="btnSyncData" class="hidden relative px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 text-white rounded-xl text-xs font-bold items-center gap-2 shadow-sm transition outline-none">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span class="hidden sm:inline">Sync Data</span>
+            </button>
+
+            <!-- Dark Mode Toggle -->
+            <button onclick="toggleDarkMode()" title="ប្តូរពណ៌" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-amber-400 transition-colors outline-none shadow-sm">
+              <i id="darkModeIcon" class="fa-solid fa-moon"></i>
+            </button>
+         </div>
+      </header>
+
+      <!-- Containers សម្រាប់ផ្ទុក UI ពី JS -->
+      <main id="dashboardView" class="flex flex-col p-0 h-full w-full overflow-hidden transition duration-200"><div id="mainContentArea" class="h-full w-full"></div></main> 
+      <main id="studentsView" class="hidden p-0 h-full w-full overflow-hidden transition duration-200"><div id="studentsContainer" class="h-full w-full p-4 md:p-6 overflow-y-auto custom-scrollbar"></div></main>
+      <main id="attendanceView" class="hidden p-0 h-full w-full overflow-hidden transition duration-200"><div id="attendanceContainer" class="h-full w-full"></div></main>
+      <main id="scoresView" class="hidden p-0 h-full w-full overflow-hidden transition duration-200"><div id="scores" class="h-full w-full"></div></main>      
+      <main id="rankingsView" class="hidden p-0 transition duration-200 h-full w-full overflow-hidden"><div id="rankingsContainer" class="h-full w-full p-4 md:p-8 overflow-y-auto custom-scrollbar"></div></main>          
+      <main id="libraryView" class="hidden p-0 transition duration-200 h-full w-full overflow-hidden"><div id="libraryContainer" class="h-full w-full p-4 md:p-8 overflow-y-auto custom-scrollbar"></div></main>
+      <main id="settingsView" class="hidden p-0 transition duration-200 h-full w-full overflow-hidden"><div id="settingsContainer" class="h-full w-full p-4 md:p-8 overflow-y-auto custom-scrollbar"></div></main>
+      <main id="reportsView" class="hidden p-0 transition duration-200 h-full w-full overflow-hidden"><div id="reportsContainer" class="h-full w-full p-4 md:p-8 overflow-y-auto custom-scrollbar"></div></main>
+    </div>
+  </div>
+
+  <!-- Global Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Scripts Logic (Authentication & Routing) -->
+  <script>
+    // ==========================================
+    // មុខងារ Auth & Routing (លោតទៅ Dashboard ពេលចូលរួច)
+    // ==========================================
+    
+    // បង្កើត Object ទូទៅសម្រាប់ទុកព័ត៌មាន (App State)
+    window.AppState = {
+        isLoggedIn: false,
+        teacherId: "",
+        teacherName: ""
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // ឆែកមើលប្រវត្តិ Login
+        const savedId = localStorage.getItem('auth_teacher_id');
+        const savedName = localStorage.getItem('auth_teacher_name');
+        
+        if (savedId) {
+            window.AppState.isLoggedIn = true;
+            window.AppState.teacherId = savedId;
+            window.AppState.teacherName = savedName || "លោកគ្រូ អ្នកគ្រូ";
+            setupWorkspace(); 
+        } else {
+            toggleAuthScreen();
+        }
+
+        // Dark Mode Check
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+          if(document.getElementById('darkModeIcon')) document.getElementById('darkModeIcon').className = 'fa-solid fa-sun';
+        }
+    });
+
+    // គ្រប់គ្រងផ្ទាំង Login 
+    function toggleAuthScreen() {
+      document.getElementById('landing-screen').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+    }
+    
+    function backToLanding() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('landing-screen').classList.remove('hidden');
+    }
+
+    function toggleAuthBox(type) {
+      if (type === 'register') {
+          document.getElementById('authLoginBox').classList.add('hidden');
+          document.getElementById('authRegisterBox').classList.remove('hidden');
+      } else {
+          document.getElementById('authLoginBox').classList.remove('hidden');
+          document.getElementById('authRegisterBox').classList.add('hidden');
+      }
+    }
+
+    // Login Submission
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('usernameOrPhone')?.value.trim().toUpperCase(); // Convert TCH-001
+      const btn = document.getElementById('btnLogin');
+      
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងពិនិត្យ...'; 
+      btn.disabled = true;
+
+      // TODO: ចងកូដជាមួយ apiGet() ពិតប្រាកដនៅទីនេះ
+      // ឧទាហរណ៍៖ let res = await apiGet("login", { username: user, pass: ... })
+
+      setTimeout(() => {
+          // Fake Success សម្រាប់តេស្ត UI
+          localStorage.setItem('auth_teacher_id', user || "TCH-001");
+          localStorage.setItem('auth_teacher_name', "លោកគ្រូ ឧទាហរណ៍");
+          
+          window.AppState.isLoggedIn = true;
+          window.AppState.teacherId = user;
+          window.AppState.teacherName = "លោកគ្រូ ឧទាហរណ៍";
+          
+          showToast("ចូលប្រព័ន្ធបានជោគជ័យ! ✅");
+          setupWorkspace();
+      }, 1000);
+    }
+
+    // Register Submission
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnRegister');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> កំពុងចុះឈ្មោះ...'; 
+      btn.disabled = true;
+
+      // TODO: ចងកូដ API Register នៅទីនេះ
+      setTimeout(() => {
+          alert("ចុះឈ្មោះជោគជ័យ! គណនីរបស់អ្នកគឺ: TCH-002");
+          toggleAuthBox('login');
+          btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> បង្កើតគណនី'; 
+          btn.disabled = false;
+      }, 1000);
+    }
+
+    function handleLogout() {
+      if(!confirm("តើលោកគ្រូ/អ្នកគ្រូពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?")) return;
+      localStorage.removeItem('auth_teacher_id');
+      localStorage.removeItem('auth_teacher_name');
+      location.reload();
+    }
+
+    // Setup Workspace ក្រោយពេល Login
+    function setupWorkspace() {
+        // បិទផ្ទាំង Login បើក Dashboard
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('landing-screen').style.display = 'none';
+        document.getElementById('appView').classList.remove('hidden');
+        
+        // Update ឈ្មោះគ្រូនៅលើ Sidebar
+        const nameEl = document.getElementById('navUserName');
+        const idEl = document.getElementById('navUserId');
+        if (nameEl) nameEl.innerText = window.AppState.teacherName;
+        if (idEl) idEl.innerText = window.AppState.teacherId;
+
+        // Restore ឆ្នាំសិក្សាចុងក្រោយ
+        const savedYear = localStorage.getItem('selected_academic_year');
+        if (savedYear) {
+            const el = document.getElementById("globalAcademicYear");
+            if (el) el.value = savedYear;
+        }
+
+        // ហៅ Dashboard UI
+        switchView('dashboard');
+    }
+
+    // ==========================================
+    // មុខងារ UI Interactions ផ្សេងៗ
+    // ==========================================
+
+    window.switchView = function(viewName) {
+        document.querySelectorAll('main').forEach(el => {
+            el.classList.add('hidden');
+            el.classList.remove('flex', 'flex-col');
+        });
+
+        const targetView = document.getElementById(viewName + 'View');
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            targetView.classList.add('flex', 'flex-col');
+        }
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('bg-white/10', 'text-white', 'border-l-4', 'border-indigo-400');
+        });
+        const activeNav = document.getElementById(`nav-${viewName}`);
+        if(activeNav) activeNav.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-indigo-400');
+
+        const titleMap = {
+            'dashboard': 'ផ្ទាំងគ្រប់គ្រង (Dashboard)',
+            'students': 'បញ្ជីរាយនាមសិស្ស',
+            'attendance': 'ស្រង់វត្តមានសិស្ស',
+            'scores': 'បញ្ចូលពិន្ទុ និងនិទ្ទេស',
+            'certificates': 'ប័ណ្ណសរសើរ',
+            'rankings': 'តារាងចំណាត់ថ្នាក់សិស្ស',
+            'library': 'បណ្ណាល័យ និងទ្រព្យសកម្ម',
+            'settings': 'ការកំណត់ទូទៅ (Settings)',
+            'tracking-book': 'សៀវភៅតាមដាន'
+        };
+        const hd = document.getElementById("pageTitleHeader");
+        if(hd) hd.innerText = titleMap[viewName] || 'ផ្ទាំងការងារ';
+        
+        // Load Content by View
+        if (viewName === 'dashboard' && typeof window.loadDashboard === 'function') window.loadDashboard();
+        if (viewName === 'students' && typeof window.loadStudentsView === 'function') window.loadStudentsView();
+        if (viewName === 'attendance' && typeof window.loadAttendanceView === 'function') window.loadAttendanceView();
+        if (viewName === 'scores' && typeof window.loadScoresView === 'function') window.loadScoresView();
+        if (viewName === 'rankings' && typeof window.loadRankingsView === 'function') window.loadRankingsView();
+        if (viewName === 'certificates' && typeof window.loadCertificatesView === 'function') window.loadCertificatesView();
+        if (viewName === 'library' && typeof window.loadLibraryView === 'function') window.loadLibraryView();
+        if (viewName === 'settings' && typeof window.loadSettingsView === 'function') window.loadSettingsView();
+        if (viewName === 'reports' && typeof window.loadReportsView === 'function') window.loadReportsView();
+
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById("appSidebar");
+            if(sidebar && !sidebar.classList.contains("hidden")) {
+                sidebar.classList.add("hidden");
+                sidebar.style.display = "none";
+            }
+        }
+    };
+
+    let isSidebarExpanded = true;
+    window.toggleSidebar = function() {
+      const sidebar = document.getElementById("appSidebar");
+      const texts = document.querySelectorAll(".sidebar-text");
+      
+      if (window.innerWidth < 768) {
+         if (sidebar.classList.contains("hidden") || sidebar.style.display === "none") {
+             sidebar.classList.remove("hidden");
+             sidebar.style.display = "flex";
+             sidebar.style.position = "absolute";
+             sidebar.style.height = "100%";
+             sidebar.style.zIndex = "50";
+         } else {
+             sidebar.classList.add("hidden");
+             sidebar.style.display = "none";
+         }
+         return;
+      }
+
+      isSidebarExpanded = !isSidebarExpanded;
+      if (isSidebarExpanded) {
+        sidebar.classList.remove("w-20");
+        sidebar.classList.add("w-64");
+        texts.forEach(el => {
+          el.classList.remove("hidden");
+          setTimeout(() => el.classList.remove("opacity-0"), 50);
+        });
+      } else {
+        sidebar.classList.remove("w-64");
+        sidebar.classList.add("w-20");
+        texts.forEach(el => {
+          el.classList.add("opacity-0");
+          setTimeout(() => el.classList.add("hidden"), 300);
+        });
+      }
+    };
+
+    window.handleYearChange = function() {
+        const year = document.getElementById("globalAcademicYear")?.value;
+        if (year) {
+            localStorage.setItem('selected_academic_year', year);
+            if (typeof window.showToast === 'function') window.showToast(`🔄 ប្តូរទៅឆ្នាំសិក្សា៖ ${year}`);
+            
+            // ហៅ Functions ឱ្យ Refresh ទិន្នន័យ
+            if(typeof window.fetchStudentsForScores === 'function') window.fetchStudentsForScores();
+            // ផ្សេងៗ...
+        }
+    };
+
+    window.showToast = function(message, isError = false) {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      const bgColor = isError ? "bg-rose-600" : "bg-emerald-600";
+      const icon = isError ? "fa-circle-exclamation" : "fa-circle-check";
+
+      toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg animate-fade-in flex items-center gap-3 font-siemreap`;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span class="text-sm font-semibold">${message}</span>`;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(20px)";
+          setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    };
+
+    window.toggleDarkMode = function() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.getElementById('darkModeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    };
+
+
+    window.forceSyncFromGoogleSheet = async function(btnEl) {
+    if (btnEl) {
+        btnEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> កំពុងទាញពី Google Sheet...`;
+        btnEl.disabled = true;
+    }
+
+    try {
+        // បង្ខំទាញយកទិន្នន័យថ្មីទាំងស្រុងពី Cloud
+        await window.fetchAllData(); 
+        if (typeof showToast === 'function') {
+            showToast("✅ បានទាញយកទិន្នន័យពី Google Sheet ជោគជ័យ!");
+        } else {
+            alert("✅ បានទាញយកទិន្នន័យពី Google Sheet ជោគជ័យ!");
+        }
+    } catch (error) {
+        console.error("Sync Error:", error);
+        alert("❌ បរាជ័យក្នុងការទាញទិន្នន័យ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត។");
+    } finally {
+        if (btnEl) {
+            btnEl.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> ទាញពី Google Sheet`;
+            btnEl.disabled = false;
+        }
+    }
+};
+
+// ==========================================
+// មុខងារទាញយកទិន្នន័យទាំងអស់ពី Cloud មកកុំព្យូទ័រវិញ (Manual Fetch All Data)
+// ==========================================
+window.fetchAllData = async function(btnEl = null) {
+    let origText = "";
+    
+    // បង្ហាញសញ្ញាវិល (Loading state) លើប៊ូតុង
+    if (btnEl) {
+        origText = btnEl.innerHTML;
+        btnEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-indigo-500"></i> កំពុងទាញយក...`;
+        btnEl.disabled = true;
+    }
+
+    try {
+        if (typeof window.apiGet !== 'function') throw new Error("មុខងារ API មិនទាន់ដំណើរការ");
+
+        // ទាញយកទិន្នន័យព្រមគ្នាពី Cloud (Students, Scores, Attendance, Settings)
+        const [studentsRes, scoresRes, attRes] = await Promise.all([
+            window.apiGet("getStudents", { status: "Active" }),
+            window.apiGet("getScores"),
+            window.apiGet("getAttendance")
+        ]);
+
+        // ១. ធ្វើបច្ចុប្បន្នភាពបញ្ជីសិស្ស
+        if (studentsRes && studentsRes.status === "success") {
+            const stuData = studentsRes.data || [];
+            localStorage.setItem('academic_students', JSON.stringify(stuData));
+            if (typeof window.allStudents !== 'undefined') window.allStudents = stuData;
+        }
+
+        // ២. ធ្វើបច្ចុប្បន្នភាពបញ្ជីពិន្ទុ
+        if (scoresRes && scoresRes.status === "success") {
+            localStorage.setItem('academic_scores', JSON.stringify(scoresRes.data || []));
+        }
+
+        // ៣. ធ្វើបច្ចុប្បន្នភាពបញ្ជីវត្តមាន
+        if (attRes && attRes.status === "success") {
+            localStorage.setItem('academic_attendance', JSON.stringify(attRes.data || []));
+        }
+
+        // បង្ហាញសារជោគជ័យ
+        if (typeof showToast === 'function') showToast("🔄 បានទាញយកទិន្នន័យពី Cloud ជោគជ័យ!");
+
+        // 🟢 ធ្វើបច្ចុប្បន្នភាព (Refresh) ផ្ទាំងដែលកំពុងបើកមើលជាក់ស្តែង 🟢
+        setTimeout(() => {
+            // បើកំពុងបើកផ្ទាំងបញ្ជីសិស្ស
+            if (document.getElementById("studentsView") && !document.getElementById("studentsView").classList.contains("hidden")) {
+                if (typeof window.filterStudents === 'function') window.filterStudents();
+            } 
+            // បើកំពុងបើកផ្ទាំង Dashboard
+            else if (document.getElementById("dashboardView") && !document.getElementById("dashboardView").classList.contains("hidden")) {
+                if (typeof window.fetchAndComputeClassDashboard === 'function') window.fetchAndComputeClassDashboard();
+            }
+            // បើកំពុងបើកផ្ទាំងពិន្ទុ
+            else if (document.getElementById("scoresView") && !document.getElementById("scoresView").classList.contains("hidden")) {
+                if (typeof window.fetchStudentsForScores === 'function') window.fetchStudentsForScores();
+            }
+        }, 300);
+
+    } catch (error) {
+        console.error("Fetch Data Error:", error);
+        if (typeof showToast === 'function') showToast("បរាជ័យក្នុងការទាញយកទិន្នន័យពី Cloud!", true);
+        else alert("បរាជ័យក្នុងការទាញយកទិន្នន័យ! សូមពិនិត្យអ៊ីនធឺណិត។");
+    } finally {
+        // ត្រឡប់ប៊ូតុងមកសភាពដើមវិញ
+        if (btnEl) {
+            btnEl.innerHTML = origText;
+            btnEl.disabled = false;
+        }
+    }
+};
+
+  </script>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/settings.js"></script> 
+  <script src="js/students.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/scores.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/reports.js"></script>
+  
+</body>
+</html>
